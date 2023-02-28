@@ -33,7 +33,7 @@ const getValue = () => {
   });
 
   const currenValue = monacoEditor?.getValue();
-  console.log(currenValue, '989898')
+  // console.log(currenValue, '989898')
 }
 
 
