@@ -1,9 +1,9 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
-import HomeView from '../views/HomeView.vue';
 import SubscriptionView from '../views/SubscriptionView.vue';
 import FunctionsRequest from '@/views/FunctionsRequest.vue';
 import FunctionsConsumer from '@/views/FunctionsConsumer.vue';
 import SubscriptionDetail from '../views/SubscriptionDetail.vue';
+import CreateAndEditRequest from '../views/CreateAndEditRequest.vue';
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -17,14 +17,19 @@ const routes: Array<RouteRecordRaw> = [
     component: SubscriptionDetail
   },
   {
+    path: '/functions-consumer',
+    name: 'FunctionsConsumer',
+    component: FunctionsConsumer
+  },
+  {
     path: '/functions-request',
     name: 'FunctionsRequest',
     component: FunctionsRequest
   },
   {
-    path: '/functions-consumer',
-    name: 'FunctionsConsumer',
-    component: FunctionsConsumer
+    path: '/create-request/:type',
+    name: 'CreateAndEditRequest',
+    component: CreateAndEditRequest
   },
   // {
   //   path: '/about',

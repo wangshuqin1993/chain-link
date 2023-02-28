@@ -31,7 +31,6 @@ import { useRouter } from "vue-router";
 import Wallets from "../components/Wallets.vue";
 import { RegistryApi } from "@/api/registryApi";
 import { useOnboard } from '@web3-onboard/vue'
-import { any } from "joi";
 
 const router = useRouter();
 const showWallets = ref();
