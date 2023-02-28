@@ -1,10 +1,17 @@
 <template>
   <div class="functions-request-view">
-    <a-button>Create FunctionsRequest</a-button>
+    <a-button @click="createRequest('1')">Create FunctionsRequest</a-button>
+    <a-table></a-table>
   </div>
 </template>
 
 <script setup lang="ts">
+import { useRouter } from "vue-router";
+const router = useRouter();
+
+const createRequest = (val: string) => {
+  router.push(`/create-request/${val}`)
+}
 
 </script>
 
