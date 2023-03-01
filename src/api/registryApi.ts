@@ -6,6 +6,7 @@ import { networkConfig, abis } from './contractConfig';
 
 export class RegistryApi {
   private contractApi;
+  public contract;
 
   constructor(walletProvider: EIP1193Provider, network: string) {
 
@@ -16,6 +17,8 @@ export class RegistryApi {
     const contractAddress = this.getRegistry(network)
 
     this.contractApi = createContractAPI(contractAddress, contractABI, provider);
+
+    this.contract = this.contractApi.getContract();
   }
 
   private getRegistry(network: string): string {
@@ -28,9 +31,18 @@ export class RegistryApi {
     });
   }
 
-  async addConsumer(subscriptionId: bigint, consumer: string): Promise<any> {
+  async addConsumer(subscriptionId: number, consumer: string): Promise<any> {
     return this.contractApi.sendTransaction('addConsumer', subscriptionId, consumer, {
       gasLimit: 1000000,
     });
   }
+
+  async eventSubscriptionCreated(fromBlock?: string, toBlock?: string) {
+    return this.contractApi.events('SubscriptionCreated', fromBlock, toBlock);
+  }
+
+  async getSubscription(subscriptionId: number): Promise<any> {
+    return await this.contractApi.query('getSubscription', subscriptionId);
+  }
+
 }

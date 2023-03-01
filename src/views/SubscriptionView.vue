@@ -26,11 +26,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from "vue";
+import { ref, reactive, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import Wallets from "../components/Wallets.vue";
 import { RegistryApi } from "@/api/registryApi";
 import { useOnboard } from '@web3-onboard/vue'
+import { nodeListProps } from "ant-design-vue/lib/vc-tree/props";
 
 const router = useRouter();
 const showWallets = ref();
@@ -68,23 +69,35 @@ const createSubscription = () => {
   if (isWalletAccount == null || isWalletAccount === '[]') {
     showWallets.value?.onClickConnect();
   } else {
-    console.log("wallet", useOnboard().connectedWallet.value?.chains[0].id)
     const provider = useOnboard().connectedWallet.value?.provider;
     const network = useOnboard().connectedWallet.value?.chains[0].id;
     if (provider && network) {
       registry = new RegistryApi(provider, network);
-      registry.createSubscription().then(res => {
-        console.log(res);
-      });
+      // registry.createSubscription().then(receipt => {
+      //   console.log(`Transaction confirmed in block ${receipt.blockNumber}`);
+      //   console.log(`Gas used: ${receipt.gasUsed.toString()}`);
+      //   console.log(`Transaction status: ${receipt.status}`);
+      //   console.log("receipt:", receipt);
+      //   const contract = registry.contract;
+      //   const events = contract.interface.parseLog(receipt.logs[0]);
+      //   const currentsubscriptionId = events.args[0];
+      //   console.log('currentsubscriptionId:', currentsubscriptionId.toNumber());
+      // });
+
+      registry.getSubscription(5).then(t => {
+        console.log("detail", t);
+      })
     }
-
-
   }
 }
+
 
 const toDetail = () => {
   router.push('/subscription-detail')
 }
+
+
+
 
 </script>
 

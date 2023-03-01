@@ -5,6 +5,7 @@ import { EIP1193Provider } from '@web3-onboard/core';
 
 export class LinkTokenApi {
   private contractApi;
+  public contract;
 
   constructor(walletProvider: EIP1193Provider, network: string) {
 
@@ -15,13 +16,15 @@ export class LinkTokenApi {
     const contractAddress = this.getLinkToken(network)
 
     this.contractApi = createContractAPI(contractAddress, contractABI, provider);
+
+    this.contract = this.contractApi.getContract();
   }
 
   private getLinkToken(network: string): string {
     return networkConfig[network].linkToken;
   }
 
-  async transferAndCall(to: string, value: bigint, data: Uint8Array): Promise<any> {
+  async transferAndCall(to: string, value: bigint, data: string): Promise<any> {
     return this.contractApi.sendTransaction('transferAndCall', to, value, data, {
       gasLimit: 1000000,
     });
