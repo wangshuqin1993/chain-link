@@ -7,14 +7,23 @@
 
     <a-tabs v-model:activeKey="activeKey" class="subscription-table">
       <a-tab-pane key="1" tab="Active">
-        <a-table :dataSource="dataSource" :columns="columns" :pagination="false">
+        <a-table :dataSource="subscriptionList" :columns="columns" :pagination="false">
           <template #bodyCell="{ column, text }">
             <template v-if="column.dataIndex === 'id'">
               <div class="table-detail">
                 <span class="point"></span>
-                <a @click="toDetail">{{ text }}</a>
+                <a @click="toDetail(text)">{{ text }}</a>
               </div>
-
+            </template>
+            <template v-if="column.dataIndex === 'balance'">
+              <div>
+                {{ ethers.utils.formatEther(text) }}
+              </div>
+            </template>
+            <template v-if="column.dataIndex === 'consumers'">
+              <div>
+                {{ text.length }}
+              </div>
             </template>
           </template>
         </a-table>
@@ -31,12 +40,14 @@ import { useRouter } from "vue-router";
 import Wallets from "../components/Wallets.vue";
 import { RegistryApi } from "@/api/registryApi";
 import { useOnboard } from '@web3-onboard/vue'
-import { nodeListProps } from "ant-design-vue/lib/vc-tree/props";
-
+import { ethers } from "ethers";
+import dayjs from 'dayjs';
 const router = useRouter();
 const showWallets = ref();
 const activeKey = ref('1');
-const dataSource = reactive([{ id: '1112', createdTime: '2023-02-27', consumers: 0, balance: '0 Link' }]);
+const subscriptionList = ref([]);
+const subscriptionData = reactive({});
+const currentsubscriptionId = ref(0)
 const columns = [
   {
     title: 'ID',
@@ -63,6 +74,8 @@ const columns = [
     key: 'balance',
   },
 ];
+
+
 let registry: RegistryApi;
 const createSubscription = () => {
   const isWalletAccount = window.localStorage.getItem("alreadyConnectedWallets");
@@ -73,29 +86,36 @@ const createSubscription = () => {
     const network = useOnboard().connectedWallet.value?.chains[0].id;
     if (provider && network) {
       registry = new RegistryApi(provider, network);
-      // registry.createSubscription().then(receipt => {
+      // await registry.createSubscription().then(receipt => {
       //   console.log(`Transaction confirmed in block ${receipt.blockNumber}`);
       //   console.log(`Gas used: ${receipt.gasUsed.toString()}`);
       //   console.log(`Transaction status: ${receipt.status}`);
       //   console.log("receipt:", receipt);
       //   const contract = registry.contract;
       //   const events = contract.interface.parseLog(receipt.logs[0]);
-      //   const currentsubscriptionId = events.args[0];
-      //   console.log('currentsubscriptionId:', currentsubscriptionId.toNumber());
+      //   currentsubscriptionId.value = events.args[0].toNumber();
+      //   console.log('currentsubscriptionId:', currentsubscriptionId);
       // });
 
-      registry.getSubscription(5).then(t => {
-        console.log("detail", t);
+
+
+      registry.getSubscription(currentsubscriptionId.value).then(t => {
+        const data = { id: currentsubscriptionId.value, createdTime: dayjs().format('YYYY-MM-DD HH:mm:ss') };
+        Object.assign(data, t)
+        console.log("detail", data, t);
+        subscriptionList.value.push(data);
+        subscriptionData[currentsubscriptionId.value] = data;
+        localStorage.setItem('subscriptionData', JSON.stringify(subscriptionData));
       })
     }
   }
 }
 
 
-const toDetail = () => {
-  router.push('/subscription-detail')
+const toDetail = (id: number) => {
+  console.log(id)
+  router.push(`/subscription-detail/${id}`)
 }
-
 
 
 

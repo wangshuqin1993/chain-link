@@ -10,7 +10,20 @@
         <div class="title">Subscription</div>
         <a-button @click="showAddFunds">Add Funds</a-button>
       </div>
-      <a-table :columns="fundsColumns" :dataSource="fundsDataSource" :pagination="false"></a-table>
+      <a-table :columns="fundsColumns" :dataSource="subscriptionDetailData" :pagination="false">
+        <template #bodyCell="{ column, text }">
+          <template v-if="column.dataIndex === 'balance'">
+            <div>
+              {{ ethers.utils.formatEther(text) + ' Link' }}
+            </div>
+          </template>
+          <template v-if="column.dataIndex === 'consumers'">
+            <div>
+              {{ text.length }}
+            </div>
+          </template>
+        </template>
+      </a-table>
     </div>
 
     <div class="subscription-consumers" v-if="consumerDataSource.length <= 0">
@@ -23,7 +36,7 @@
         <div class="title">Consumers</div>
         <a-button @click="addConsumer">Add consumer</a-button>
       </div>
-      <a-table :columns="consumersColumns" :dataSource="consumerDataSource" :pagination="false"></a-table>
+      <a-table :columns="consumersColumns" :dataSource="consumersList" :pagination="false"></a-table>
     </div>
   </div>
 
@@ -52,7 +65,6 @@
         <a-button class="confirm-btn" @click="confirmAddConsumer">Confirm</a-button>
         <a-button class="cancel-btn" @click="cancelAddConsumer">Cancel</a-button>
       </div>
-
     </div>
   </a-modal>
 </template>
@@ -62,15 +74,17 @@ import { LinkTokenApi } from "@/api/linkTokenApi";
 import { RegistryApi } from "@/api/registryApi";
 import { useOnboard } from "@web3-onboard/vue";
 import { ethers } from "ethers";
-import { ref } from "vue";
-const fundsDataSource = ref([{ id: '1112', createdTime: '2023-02-27', consumers: 0, balance: '0 Link' }]);
+import { ref, onMounted } from "vue";
+import { useRoute } from "vue-router";
+const { params } = useRoute();
 const consumerDataSource = ref([]);
 const addFundsVisible = ref(false);
 const addConsumerVisible = ref(false);
 const addConsumerAddress = ref("");
 const addFundsAmount = ref();
 const balanceOfLink = ref("0");
-
+const subscriptionDetailData = ref([]);
+const consumersList = ref([]);
 let registryApi;
 let linkTokenApi;
 const fundsColumns = [
@@ -79,6 +93,12 @@ const fundsColumns = [
     dataIndex: 'id',
     align: "center",
     key: 'id',
+  },
+  {
+    title: 'Admain',
+    dataIndex: 'owner',
+    align: "center",
+    key: 'owner',
   },
   {
     title: 'Created',
@@ -151,9 +171,10 @@ const confirmAddFunds = () => {
   if (provider && network) {
     linkTokenApi = new LinkTokenApi(provider, network);
     registryApi = new RegistryApi(provider, network);
-    let data = ethers.utils.defaultAbiCoder.encode(["uint64"], [5]);
+    let data = ethers.utils.defaultAbiCoder.encode(["uint64"], [params.id]);
     linkTokenApi.transferAndCall(registryApi.contract.address, addFundsAmount.value, data).then(receipt => {
       console.log(receipt);
+      addFundsVisible.value = false;
     })
   }
 }
@@ -171,11 +192,20 @@ const confirmAddConsumer = () => {
   const network = useOnboard().connectedWallet.value?.chains[0].id;
   if (provider && network) {
     registryApi = new RegistryApi(provider, network);
-    registryApi.addConsumer(5, addConsumerAddress.value).then(receipt => {
+    registryApi.addConsumer(params.id, addConsumerAddress.value).then(receipt => {
       console.log(receipt);
+      addConsumerVisible.value = false;
     })
   }
 }
+
+onMounted(() => {
+  const data = JSON.parse(localStorage.getItem('subscriptionData'));
+  console.log(data[params.id], 'data');
+  consumersList.value = data.consumers;
+  subscriptionDetailData.value = [data[params.id]];
+  // getSubscriptionDetail()
+})
 
 </script>
 

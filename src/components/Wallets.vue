@@ -4,7 +4,8 @@ import Onboard, { type WalletState } from '@web3-onboard/core'
 import injectedModule from '@web3-onboard/injected-wallets'
 import { useOnboard } from '@web3-onboard/vue'
 import { useWalletAddress } from "@/stores/useWalletAddress";
-import walletTitle from '../assets/icons/logo-white.svg'
+import walletTitle from '../assets/icons/logo-white.svg';
+import { RegistryApi } from "@/api/registryApi";
 
 const walletAddress = useWalletAddress()
 
@@ -146,6 +147,7 @@ const setWalletAccount = async (walletState: { accounts: any; }) => {
     emit("setWalletBtn", false);
   }
 }
+
 const onClickDisconnect = async () => {
   const { provider, label } = connectedWallet.value || {}
   if (provider && label) {
@@ -164,23 +166,4 @@ onboard-v2 .container {
   z-index: 1;
   position: fixed;
 }
-
-/* <!-- main {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-button {
-  border: none;
-  border-radius: 6px;
-  background: hsla(160, 100%, 37%, 1);
-  color: white;
-  padding: 14px 12px;
-  margin-top: 40px;
-  font-family: inherit;
-  font-weight: 600;
-  font-size: 16px;
-  cursor: pointer;
-}--> */
 </style>
