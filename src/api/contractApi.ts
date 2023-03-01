@@ -3,6 +3,8 @@ import { Contract, ethers } from 'ethers';
 interface ContractAPI {
   query: (methodName: string, ...args: any[]) => Promise<any>;
   sendTransaction: (methodName: string, ...args: any[]) => Promise<any>;
+  getContract: () => Contract;
+  events: (eventName: string, fromBlock?: string, toBlock?: string, ...args: any[]) => Promise<any>
 }
 
 export function createContractAPI(
@@ -11,20 +13,31 @@ export function createContractAPI(
   provider: ethers.providers.Web3Provider
 ): ContractAPI {
 
+  const signer = provider.getSigner();
+  const contract = new Contract(contractAddress, abi, signer);
+
   const query = async (methodName: string, ...args: any[]): Promise<any> => {
-    const contract = new Contract(contractAddress, abi, provider);
     return await contract[methodName](...args);
   };
 
   const sendTransaction = async (methodName: string, ...args: any[]): Promise<any> => {
-    const signer = await provider.getSigner();
-    const contract = new Contract(contractAddress, abi, signer);
     const tx = await contract[methodName](...args);
     return tx.wait();
+  };
+
+  const getContract = () => {
+    return contract;
+  }
+
+  const events = async (eventName: string, fromBlock?: string, toBlock?: string, ...args: any[]): Promise<any> => {
+    const filter = contract.filters[eventName](...args);
+    return contract.queryFilter(filter, fromBlock, toBlock);
   };
 
   return {
     query,
     sendTransaction,
+    getContract,
+    events
   };
 }

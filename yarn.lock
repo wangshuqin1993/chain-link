@@ -3916,7 +3916,7 @@
     "es5-ext" "^0.10.50"
     "type" "^1.0.1"
 
-"dayjs@^1.10.5":
+"dayjs@^1.10.5", "dayjs@^1.11.7":
   "integrity" "sha512-+Yw9U6YO5TQohxLcIkrXBeY73WP3ejHWVvx8XCk3gxvQDCTEmS48ZrSZCKciI7Bhl/uCMyxYtE9UqRILmFphkQ=="
   "resolved" "https://registry.npmjs.org/dayjs/-/dayjs-1.11.7.tgz"
   "version" "1.11.7"
