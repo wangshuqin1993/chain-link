@@ -2,14 +2,12 @@ export const networkConfig: Record<string, Record<string, string>> =
 {
   mainnet: {
     linkToken: "0x514910771af9ca656af840dff83e8264ecf986ca",
-    linkEthPriceFeed: "",
     functionsOracleProxy: "",
     functionsBillingRegistryProxy: "",
     functionsPublicKey: ""
   },
   "0xaa36a7": {
     linkToken: "0x779877A7B0D9E8603169DdbD7836e478b4624789",
-    linkEthPriceFeed: "0x42585eD362B3f1BCa95c640FdFf35Ef899212734",
     functionsOracleProxy: "0x649a2C205BE7A3d5e99206CEEFF30c794f0E31EC",
     functionsBillingRegistryProxy: "0x3c79f56407DCB9dc9b852D139a317246f43750Cc",
     functionsPublicKey:
@@ -17,18 +15,22 @@ export const networkConfig: Record<string, Record<string, string>> =
   },
   polygon: {
     linkToken: "0xb0897686c545045afc77cf20ec7a532e3120e0f1",
-    linkEthPriceFeed: "",
     functionsOracleProxy: "",
     functionsBillingRegistryProxy: "",
     functionsPublicKey: ""
   },
   mumbai: {
     linkToken: "0x326C977E6efc84E512bB9C30f76E30c160eD06FB",
-    linkEthPriceFeed: "0x12162c3E810393dEC01362aBf156D7ecf6159528",
     functionsOracleProxy: "0xeA6721aC65BCeD841B8ec3fc5fEdeA6141a0aDE4",
     functionsBillingRegistryProxy: "0xEe9Bf52E5Ea228404bB54BCFbbDa8c21131b9039",
     functionsPublicKey:
       "a30264e813edc9927f73e036b7885ee25445b836979cb00ef112bc644bd16de2db866fa74648438b34f52bb196ffa386992e94e0a3dc6913cee52e2e98f1619c",
+  },
+  '0x7a69': {
+    linkToken: '0x422B78Dadb5B98cd18EeDDA15E58a824c3873832',
+    functionsOracleProxy: '0x5c5A3C0a6472f4E90b69590e4ecECcAE9853E549',
+    functionsBillingRegistryProxy: '0x484b8b1a318a8E73E865E0eCF834952CdFDD40c4',
+    functionsPublicKey: '0x971f006163a12ee3383a00d7743334480d6b1c83fdf60497e0c520b16d1a4ee421cc61375679b63466156fee6f2f1da5a7e630ba0b1cddb2704ef907ead223db'
   }
 }
 
@@ -1776,5 +1778,64 @@ export const abis = {
       "type": "function"
     }
   ],
+  consumer: [
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "source",
+          "type": "string"
+        },
+        {
+          "internalType": "bytes",
+          "name": "secrets",
+          "type": "bytes"
+        },
+        {
+          "internalType": "enum Functions.Location",
+          "name": "secretsLocation",
+          "type": "uint8"
+        },
+        {
+          "internalType": "string[]",
+          "name": "args",
+          "type": "string[]"
+        },
+        {
+          "internalType": "uint64",
+          "name": "subscriptionId",
+          "type": "uint64"
+        },
+        {
+          "internalType": "uint32",
+          "name": "gasLimit",
+          "type": "uint32"
+        }
+      ],
+      "name": "executeRequest",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getDONPublicKey",
+      "outputs": [
+        {
+          "internalType": "bytes",
+          "name": "",
+          "type": "bytes"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ]
 }
 

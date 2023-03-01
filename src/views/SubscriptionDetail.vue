@@ -16,12 +16,12 @@
     <div class="subscription-consumers" v-if="consumerDataSource.length <= 0">
       <div class="title">No consumers</div>
       <div class="desc">Your subscription is ready. You can now add consumers.</div>
-      <a-button class="add-btn" @click="addConsumers">Add consumers</a-button>
+      <a-button class="add-btn" @click="addConsumer">Add consumer</a-button>
     </div>
     <div class="subscription-consumer-list" v-if="consumerDataSource.length > 0">
       <div class="consumer-title">
         <div class="title">Consumers</div>
-        <a-button @click="addConsumers">Add consumer</a-button>
+        <a-button @click="addConsumer">Add consumer</a-button>
       </div>
       <a-table :columns="consumersColumns" :dataSource="consumerDataSource" :pagination="false"></a-table>
     </div>
@@ -31,11 +31,11 @@
     <div class="add-funds-box">
       <div class="title">Add funds (LINK)</div>
       <div class="add-funds-input">
-        <a-input></a-input>
+        <a-input v-model:value="addFundsAmount"></a-input>
       </div>
-      <div class="desc">Your wallet balance: 0.0 LINK</div>
+      <div class="desc">Your wallet balance: {{ balanceOfLink }} LINK</div>
       <div class="btn-box">
-        <a-button class="confirm-btn">Confirm</a-button>
+        <a-button class="confirm-btn" @click="confirmAddFunds">Confirm</a-button>
         <a-button class="cancel-btn" @click="cancelAddFunds">Cancel</a-button>
       </div>
 
@@ -44,14 +44,13 @@
 
   <a-modal v-model:visible="addConsumerVisible" title="Add consumer" :footer="null">
     <div class="add-consumer-box">
-      <div class="">Add funds (LINK)</div>
+      <div class="">Add consumer</div>
       <div class="add-funds-input">
-        <a-input></a-input>
+        <a-input v-model:value="addConsumerAddress"></a-input>
       </div>
-      <div class="desc">Your wallet balance: 0.0 LINK</div>
       <div class="btn-box">
-        <a-button class="confirm-btn">Confirm</a-button>
-        <a-button class="cancel-btn" @click="cancelAddFunds">Cancel</a-button>
+        <a-button class="confirm-btn" @click="confirmAddConsumer">Confirm</a-button>
+        <a-button class="cancel-btn" @click="cancelAddConsumer">Cancel</a-button>
       </div>
 
     </div>
@@ -59,11 +58,21 @@
 </template>
 
 <script setup lang="ts">
+import { LinkTokenApi } from "@/api/linkTokenApi";
+import { RegistryApi } from "@/api/registryApi";
+import { useOnboard } from "@web3-onboard/vue";
+import { ethers } from "ethers";
 import { ref } from "vue";
 const fundsDataSource = ref([{ id: '1112', createdTime: '2023-02-27', consumers: 0, balance: '0 Link' }]);
 const consumerDataSource = ref([]);
 const addFundsVisible = ref(false);
 const addConsumerVisible = ref(false);
+const addConsumerAddress = ref("");
+const addFundsAmount = ref();
+const balanceOfLink = ref("0");
+
+let registryApi;
+let linkTokenApi;
 const fundsColumns = [
   {
     title: 'ID',
@@ -119,17 +128,53 @@ const consumersColumns = [
 ]
 
 const showAddFunds = () => {
+  const provider = useOnboard().connectedWallet.value?.provider;
+  const network = useOnboard().connectedWallet.value?.chains[0].id;
+  const account = useOnboard().connectedWallet.value?.accounts[0].address;
+  if (provider && network && account) {
+    linkTokenApi = new LinkTokenApi(provider, network);
+    linkTokenApi.balanceOf(account).then(balance => {
+      balanceOfLink.value = ethers.utils.formatEther(balance);
+    })
+  }
+
   addFundsVisible.value = true;
 }
 
 const cancelAddFunds = () => {
+  addFundsVisible.value = false;
 }
 
-const addConsumers = () => {
+const confirmAddFunds = () => {
+  const provider = useOnboard().connectedWallet.value?.provider;
+  const network = useOnboard().connectedWallet.value?.chains[0].id;
+  if (provider && network) {
+    linkTokenApi = new LinkTokenApi(provider, network);
+    registryApi = new RegistryApi(provider, network);
+    let data = ethers.utils.defaultAbiCoder.encode(["uint64"], [5]);
+    linkTokenApi.transferAndCall(registryApi.contract.address, addFundsAmount.value, data).then(receipt => {
+      console.log(receipt);
+    })
+  }
+}
+
+const addConsumer = () => {
   addConsumerVisible.value = true
 }
 
-const cancelAddConsumers = () => {
+const cancelAddConsumer = () => {
+  addConsumerVisible.value = false
+}
+
+const confirmAddConsumer = () => {
+  const provider = useOnboard().connectedWallet.value?.provider;
+  const network = useOnboard().connectedWallet.value?.chains[0].id;
+  if (provider && network) {
+    registryApi = new RegistryApi(provider, network);
+    registryApi.addConsumer(5, addConsumerAddress.value).then(receipt => {
+      console.log(receipt);
+    })
+  }
 }
 
 </script>
