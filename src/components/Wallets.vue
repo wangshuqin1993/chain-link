@@ -4,7 +4,7 @@ import Onboard, { type WalletState } from '@web3-onboard/core'
 import injectedModule from '@web3-onboard/injected-wallets'
 import { useOnboard } from '@web3-onboard/vue'
 import { useWalletAddress } from "@/stores/useWalletAddress";
-import walletTitle from '../assets/icons/logo-white.svg'
+import walletTitle from '../assets/icons/logo-white.svg';
 
 const walletAddress = useWalletAddress()
 
