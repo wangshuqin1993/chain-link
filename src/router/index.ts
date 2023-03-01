@@ -12,7 +12,7 @@ const routes: Array<RouteRecordRaw> = [
     component: SubscriptionView
   },
   {
-    path: '/subscription-detail',
+    path: '/subscription-detail/:id',
     name: 'SubscriptionDetail',
     component: SubscriptionDetail
   },

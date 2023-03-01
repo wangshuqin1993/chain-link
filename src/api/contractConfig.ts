@@ -27,9 +27,9 @@ export const networkConfig: Record<string, Record<string, string>> =
       "a30264e813edc9927f73e036b7885ee25445b836979cb00ef112bc644bd16de2db866fa74648438b34f52bb196ffa386992e94e0a3dc6913cee52e2e98f1619c",
   },
   '0x7a69': {
-    linkToken: '0x422B78Dadb5B98cd18EeDDA15E58a824c3873832',
-    functionsOracleProxy: '0x5c5A3C0a6472f4E90b69590e4ecECcAE9853E549',
-    functionsBillingRegistryProxy: '0x484b8b1a318a8E73E865E0eCF834952CdFDD40c4',
+    linkToken: '0xe6e2FC7813137332943213cA1EFFd24fEd158cf7',
+    functionsOracleProxy: '0xbEbF9269fee910D77DdAFd86Cc8005D482762952',
+    functionsBillingRegistryProxy: '0x9DD6Cf6eaE198989274BAb3eD8143e8a01Ad0120',
     functionsPublicKey: '0x971f006163a12ee3383a00d7743334480d6b1c83fdf60497e0c520b16d1a4ee421cc61375679b63466156fee6f2f1da5a7e630ba0b1cddb2704ef907ead223db'
   }
 }
