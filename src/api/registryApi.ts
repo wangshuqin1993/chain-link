@@ -1,6 +1,6 @@
 import { EIP1193Provider } from '@web3-onboard/core';
 import { ethers } from 'ethers';
-import { createContractAPI } from './contractApi'
+import { createContractApi } from './contractApi'
 import { networkConfig, abis } from './contractConfig';
 
 
@@ -16,7 +16,7 @@ export class RegistryApi {
 
     const contractAddress = this.getRegistry(network)
 
-    this.contractApi = createContractAPI(contractAddress, contractABI, provider);
+    this.contractApi = createContractApi(contractAddress, contractABI, provider);
 
     this.contract = this.contractApi.getContract();
   }

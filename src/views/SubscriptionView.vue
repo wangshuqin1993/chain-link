@@ -35,19 +35,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive, onMounted, Ref } from "vue";
 import { useRouter } from "vue-router";
 import Wallets from "../components/Wallets.vue";
 import { RegistryApi } from "@/api/registryApi";
 import { useOnboard } from '@web3-onboard/vue'
 import { ethers } from "ethers";
 import dayjs from 'dayjs';
+import { SubscriptionDBApi, Subscription } from "@/db/subscription";
 const router = useRouter();
 const showWallets = ref();
 const activeKey = ref('1');
-const subscriptionList = ref([]);
+const subscriptionList: Ref<Subscription[]> = ref([]);
 const subscriptionData = reactive({});
-const currentsubscriptionId = ref(0)
+const currentsubscriptionId = ref(1)
 const columns = [
   {
     title: 'ID',
@@ -65,7 +66,7 @@ const columns = [
     title: 'Consumers',
     dataIndex: 'consumers',
     align: "center",
-    key: 'consumers',
+    key: 'consumersCount',
   },
   {
     title: 'Balance',
@@ -74,6 +75,20 @@ const columns = [
     key: 'balance',
   },
 ];
+const subscriptionDBApi = new SubscriptionDBApi();
+//get subcription data
+subscriptionDBApi.open()
+
+const searchSubscriptionByOwner = (owner: string) => {
+  subscriptionDBApi.searchSubscriptionByOwner(owner).then(data => {
+    subscriptionList.value = data;
+  })
+}
+const account = useOnboard().connectedWallet.value?.accounts[0].address;
+if (account) {
+  searchSubscriptionByOwner(account);
+}
+
 
 
 let registry: RegistryApi;
@@ -86,27 +101,32 @@ const createSubscription = () => {
     const network = useOnboard().connectedWallet.value?.chains[0].id;
     if (provider && network) {
       registry = new RegistryApi(provider, network);
-      // await registry.createSubscription().then(receipt => {
-      //   console.log(`Transaction confirmed in block ${receipt.blockNumber}`);
-      //   console.log(`Gas used: ${receipt.gasUsed.toString()}`);
-      //   console.log(`Transaction status: ${receipt.status}`);
-      //   console.log("receipt:", receipt);
-      //   const contract = registry.contract;
-      //   const events = contract.interface.parseLog(receipt.logs[0]);
-      //   currentsubscriptionId.value = events.args[0].toNumber();
-      //   console.log('currentsubscriptionId:', currentsubscriptionId);
-      // });
+      registry.createSubscription().then(receipt => {
+        console.log("receipt:", receipt);
+        const contract = registry.contract;
+        const events = contract.interface.parseLog(receipt.logs[0]);
+        currentsubscriptionId.value = events.args[0].toNumber();
+        const subscription: Subscription = {
+          id: events.args[0].toNumber(),
+          createdTime: dayjs().format('YYYY-MM-DD HH:mm:ss'),
+          consumers: [],
+          balance: '0',
+          consumerCount: 0,
+          owner: receipt.from
+        };
+        subscriptionDBApi.addSubscription(subscription);
+        searchSubscriptionByOwner(receipt.from);
+      });
 
 
-
-      registry.getSubscription(currentsubscriptionId.value).then(t => {
-        const data = { id: currentsubscriptionId.value, createdTime: dayjs().format('YYYY-MM-DD HH:mm:ss') };
-        Object.assign(data, t)
-        console.log("detail", data, t);
-        subscriptionList.value.push(data);
-        subscriptionData[currentsubscriptionId.value] = data;
-        localStorage.setItem('subscriptionData', JSON.stringify(subscriptionData));
-      })
+      // registry.getSubscription(currentsubscriptionId.value).then(t => {
+      //   const data = { id: currentsubscriptionId.value, createdTime: dayjs().format('YYYY-MM-DD HH:mm:ss') };
+      //   Object.assign(data, t)
+      //   console.log("detail", data, t);
+      //   subscriptionList.value.push(data);
+      //   subscriptionData[currentsubscriptionId.value] = data;
+      //   localStorage.setItem('subscriptionData', JSON.stringify(subscriptionData));
+      // })
     }
   }
 }
@@ -116,9 +136,6 @@ const toDetail = (id: number) => {
   console.log(id)
   router.push(`/subscription-detail/${id}`)
 }
-
-
-
 </script>
 
 <style scoped lang="scss">

@@ -1,17 +1,17 @@
 import { Contract, ethers } from 'ethers';
 
-interface ContractAPI {
+interface contractApi {
   query: (methodName: string, ...args: any[]) => Promise<any>;
   sendTransaction: (methodName: string, ...args: any[]) => Promise<any>;
   getContract: () => Contract;
   events: (eventName: string, fromBlock?: string, toBlock?: string, ...args: any[]) => Promise<any>
 }
 
-export function createContractAPI(
+export function createContractApi(
   contractAddress: string,
   abi: any[],
   provider: ethers.providers.Web3Provider
-): ContractAPI {
+): contractApi {
 
   const signer = provider.getSigner();
   const contract = new Contract(contractAddress, abi, signer);

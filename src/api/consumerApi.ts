@@ -1,4 +1,4 @@
-import { createContractAPI } from './contractApi'
+import { createContractApi } from './contractApi'
 import { abis } from './contractConfig';
 import { ethers } from 'ethers';
 import { EIP1193Provider } from '@web3-onboard/core';
@@ -13,7 +13,7 @@ export class ConsumerApi {
 
     const contractABI = abis.consumer;
 
-    this.contractApi = createContractAPI(contractAddress, contractABI, provider);
+    this.contractApi = createContractApi(contractAddress, contractABI, provider);
 
     this.contract = this.contractApi.getContract();
   }
