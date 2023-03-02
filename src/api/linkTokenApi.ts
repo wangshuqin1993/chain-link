@@ -1,6 +1,6 @@
-import { createContractAPI } from './contractApi'
+import { createContractApi } from './contractApi'
 import { networkConfig, abis } from './contractConfig';
-import { ethers } from 'ethers';
+import { BigNumber, ethers } from 'ethers';
 import { EIP1193Provider } from '@web3-onboard/core';
 
 export class LinkTokenApi {
@@ -15,7 +15,7 @@ export class LinkTokenApi {
 
     const contractAddress = this.getLinkToken(network)
 
-    this.contractApi = createContractAPI(contractAddress, contractABI, provider);
+    this.contractApi = createContractApi(contractAddress, contractABI, provider);
 
     this.contract = this.contractApi.getContract();
   }
@@ -24,7 +24,7 @@ export class LinkTokenApi {
     return networkConfig[network].linkToken;
   }
 
-  async transferAndCall(to: string, value: bigint, data: string): Promise<any> {
+  async transferAndCall(to: string, value: BigNumber, data: string): Promise<any> {
     return this.contractApi.sendTransaction('transferAndCall', to, value, data, {
       gasLimit: 1000000,
     });

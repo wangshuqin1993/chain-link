@@ -1,6 +1,6 @@
 <template>
   <div class="functions-consumer-view">
-    <a-button @click="visible = true">Create FunctionsConsumer</a-button>
+    <a-button class="create-btn" @click="visible = true">Create FunctionsConsumer</a-button>
     <a-table :columns="columns" :dataSource="dataSource" :pagination="false">
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'action'">
@@ -45,7 +45,7 @@ const columns = [
     key: 'createdTime',
   },
   {
-    title: 'ID',
+    title: 'SubscritionID',
     dataIndex: 'id',
     align: "center",
     key: 'id',
@@ -96,9 +96,16 @@ const deployBtn = async () => {
 
 <style scoped lang="scss">
 .functions-consumer-view {
-  max-width: 1920px;
-  margin: 32px;
+  max-width: 1440px;
+  margin: 96px 32px 32px;
   text-align: left;
+  border-radius: 8px;
+  background-color: #ffffff;
+  padding: 24px;
+
+  .create-btn {
+    margin-bottom: 32px;
+  }
 
   .ant-btn {
     height: 42px;

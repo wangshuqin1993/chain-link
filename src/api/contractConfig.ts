@@ -19,7 +19,7 @@ export const networkConfig: Record<string, Record<string, string>> =
     functionsBillingRegistryProxy: "",
     functionsPublicKey: ""
   },
-  mumbai: {
+  "0x13881": {
     linkToken: "0x326C977E6efc84E512bB9C30f76E30c160eD06FB",
     functionsOracleProxy: "0xeA6721aC65BCeD841B8ec3fc5fEdeA6141a0aDE4",
     functionsBillingRegistryProxy: "0xEe9Bf52E5Ea228404bB54BCFbbDa8c21131b9039",

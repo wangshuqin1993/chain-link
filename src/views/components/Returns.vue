@@ -1,19 +1,20 @@
 <template>
   <div class="return">
-    <div>Returns</div>
+    <div class="title">Define Return</div>
     <div>
       <a-form ref="formRef" :model="addReturnForm">
         <a-form-item name="returnType" label="returnType" :rules="[{ required: true }]">
-          <a-select v-model:value="addReturnForm.returnType" :options="returnTypeList" />
+          <a-select v-model:value="addReturnForm.returnType" :options="returnTypeList" @change="submitForm" />
         </a-form-item>
         <a-form-item name="returnParam" label="returnParam" :rules="[{ required: true }]">
-          <a-input v-model:value="addReturnForm.returnParam" placeholder="please input returnParam"></a-input>
+          <a-input v-model:value="addReturnForm.returnParam" placeholder="please input returnParam"
+            @blur="submitForm"></a-input>
         </a-form-item>
 
-        <a-form-item>
+        <!-- <a-form-item class="btn-box">
           <a-button type="primary" html-type="submit" @click="submitForm">Submit</a-button>
           <a-button style="margin-left: 10px" @click="resetForm">Reset</a-button>
-        </a-form-item>
+        </a-form-item> -->
       </a-form>
     </div>
   </div>
@@ -29,11 +30,12 @@ const addReturnForm = reactive({
 });
 const emit = defineEmits(["submitReturnForm"]);
 
+
 const submitForm = () => {
   formRef.value
     .validate()
     .then(() => {
-      console.log(addReturnForm, '99')
+      // console.log(addReturnForm, '99')
       emit('submitReturnForm', addReturnForm)
     })
     .catch(error => {
@@ -43,8 +45,28 @@ const submitForm = () => {
 
 const resetForm = () => {
   formRef.value.resetFields();
-}
+};
+
+defineExpose({ submitForm });
 </script>
 <style lang='scss' scoped>
-.return {}
+.return {
+  .title {
+    font-weight: 700;
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+
+  .btn-box {
+    text-align: center;
+
+    .ant-btn {
+      width: 132px;
+    }
+  }
+}
+
+:deep(.ant-form-item-label>label) {
+  width: 124px;
+}
 </style>

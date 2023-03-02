@@ -14,29 +14,32 @@
         <template #bodyCell="{ column, text }">
           <template v-if="column.dataIndex === 'balance'">
             <div>
-              {{ ethers.utils.formatEther(text) + ' Link' }}
-            </div>
-          </template>
-          <template v-if="column.dataIndex === 'consumers'">
-            <div>
-              {{ text.length }}
+              {{ text + ' Link' }}
             </div>
           </template>
         </template>
       </a-table>
     </div>
 
-    <div class="subscription-consumers" v-if="consumerDataSource.length <= 0">
+    <div class="subscription-consumers" v-if="consumersList.length <= 0">
       <div class="title">No consumers</div>
       <div class="desc">Your subscription is ready. You can now add consumers.</div>
       <a-button class="add-btn" @click="addConsumer">Add consumer</a-button>
     </div>
-    <div class="subscription-consumer-list" v-if="consumerDataSource.length > 0">
+    <div class="subscription-consumer-list" v-if="consumersList.length > 0">
       <div class="consumer-title">
         <div class="title">Consumers</div>
         <a-button @click="addConsumer">Add consumer</a-button>
       </div>
-      <a-table :columns="consumersColumns" :dataSource="consumersList" :pagination="false"></a-table>
+      <a-table :columns="consumersColumns" :dataSource="consumersList" :pagination="false">
+        <template #bodyCell="{ column, text, record }">
+          <template v-if="column.dataIndex === 'action'">
+            <span>
+              <a @click="deleteConsumer(record)">Delete</a>
+            </span>
+          </template>
+        </template>
+      </a-table>
     </div>
   </div>
 
@@ -72,21 +75,27 @@
 <script setup lang="ts">
 import { LinkTokenApi } from "@/api/linkTokenApi";
 import { RegistryApi } from "@/api/registryApi";
+import { Consumer, Subscription, SubscriptionDBApi } from "@/db/subscription";
 import { useOnboard } from "@web3-onboard/vue";
 import { ethers } from "ethers";
-import { ref, onMounted } from "vue";
+import { ref, onMounted, Ref } from "vue";
 import { useRoute } from "vue-router";
 const { params } = useRoute();
-const consumerDataSource = ref([]);
 const addFundsVisible = ref(false);
 const addConsumerVisible = ref(false);
 const addConsumerAddress = ref("");
 const addFundsAmount = ref();
 const balanceOfLink = ref("0");
-const subscriptionDetailData = ref([]);
-const consumersList = ref([]);
-let registryApi;
+const subscriptionDetailData: Ref<Subscription[]> = ref([]);
+const consumersList: Ref<Consumer[]> = ref([]);
+let registryApi: RegistryApi;
 let linkTokenApi;
+const subscriptionDBApi = new SubscriptionDBApi();
+//get subcription data
+subscriptionDBApi.open().then(() => {
+  getSubscription(parseInt(params.id));
+})
+
 const fundsColumns = [
   {
     title: 'ID',
@@ -108,9 +117,9 @@ const fundsColumns = [
   },
   {
     title: 'Consumers',
-    dataIndex: 'consumers',
+    dataIndex: 'consumerCount',
     align: "center",
-    key: 'consumers',
+    key: 'consumerCount',
   },
   {
     title: 'Balance',
@@ -129,12 +138,6 @@ const consumersColumns = [
   },
   {
     title: 'Added',
-    dataIndex: 'addTime',
-    align: "center",
-    key: 'addTime',
-  },
-  {
-    title: 'Last Fulfillment',
     dataIndex: 'addTime',
     align: "center",
     key: 'addTime',
@@ -172,8 +175,19 @@ const confirmAddFunds = () => {
     linkTokenApi = new LinkTokenApi(provider, network);
     registryApi = new RegistryApi(provider, network);
     let data = ethers.utils.defaultAbiCoder.encode(["uint64"], [params.id]);
-    linkTokenApi.transferAndCall(registryApi.contract.address, addFundsAmount.value, data).then(receipt => {
+    const weiValue = ethers.utils.parseEther(addFundsAmount.value.toString());
+    linkTokenApi.transferAndCall(registryApi.contract.address, weiValue, data).then(receipt => {
       console.log(receipt);
+      //update subscription
+      registryApi.getSubscription(params.id).then(t => {
+        console.log("aaa");
+        subscriptionDBApi.updateSubscriptionBalance(parseInt(params.id), ethers.utils.formatEther(t.balance)).then(data => {
+          if (data) {
+            subscriptionDetailData.value = [];
+            subscriptionDetailData.value.push(data);
+          }
+        })
+      });
       addFundsVisible.value = false;
     })
   }
@@ -192,29 +206,50 @@ const confirmAddConsumer = () => {
   const network = useOnboard().connectedWallet.value?.chains[0].id;
   if (provider && network) {
     registryApi = new RegistryApi(provider, network);
-    registryApi.addConsumer(params.id, addConsumerAddress.value).then(receipt => {
+    registryApi.addConsumer(parseInt(params.id), addConsumerAddress.value).then(receipt => {
       console.log(receipt);
+      registryApi.getSubscription(params.id).then(t => {
+        subscriptionDBApi.updateSubscriptionConsumers(parseInt(params.id), t.consumers).then(data => {
+          if (data) {
+            consumersList.value = data.consumers;
+          }
+        })
+      });
       addConsumerVisible.value = false;
     })
   }
 }
 
-onMounted(() => {
-  const data = JSON.parse(localStorage.getItem('subscriptionData'));
-  console.log(data[params.id], 'data');
-  consumersList.value = data.consumers;
-  subscriptionDetailData.value = [data[params.id]];
-  // getSubscriptionDetail()
-})
+const deleteConsumer = (val: any) => {
+  console.log(val, 'val')
+}
+
+
+
+const getSubscription = (id: number) => {
+  subscriptionDBApi.getSubscription(id).then(data => {
+    console.log("getSubscription", id, data);
+    subscriptionDetailData.value = [];
+    if (data) {
+      subscriptionDetailData.value.push(data);
+      consumersList.value = data.consumers;
+    }
+  })
+}
+
+
 
 </script>
 
 <style scoped lang="scss">
 .subscription-detail {
-  max-width: 1920px;
-  margin: 32px;
+  max-width: 1440px;
+  margin: 96px 32px 32px;
   text-align: left;
   color: #1a2b6b;
+  background-color: #ffffff;
+  border-radius: 8px;
+  padding: 24px;
 
   .funds-title,
   .consumer-title {
@@ -227,6 +262,7 @@ onMounted(() => {
     }
 
     .ant-btn {
+      margin-bottom: 16px;
       color: #ffffff;
       font-weight: 700;
       width: 132px;
