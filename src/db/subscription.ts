@@ -21,6 +21,25 @@ interface SubscriptionStoreValue {
   owner: string;
 }
 
+interface Scerets {
+  secretsLocation: string,
+  secretsURL: string,
+  secrets: [],
+  args: [],
+}
+interface Requset {
+  id: number,
+  addTime: string,
+  source: string,
+  scerets: Scerets,
+}
+
+interface RequestStoreValue {
+  key: number,
+  value: Requset,
+  id: number,
+}
+
 interface MyDB extends DBSchema {
   subscription_0x7a69: {
     key: number;
@@ -42,6 +61,11 @@ interface MyDB extends DBSchema {
     value: Subscription;
     indexes: { owner: string };
   };
+  request: {
+    key: number;
+    value: Requset;
+    indexes: {id: number}
+  }
 }
 
 export class SubscriptionDBApi {
@@ -61,6 +85,8 @@ export class SubscriptionDBApi {
         store2.createIndex('owner', 'owner');
         const store3 = db.createObjectStore('subscription_0x13881', { keyPath: 'key' });
         store3.createIndex('owner', 'owner');
+        const store4 = db.createObjectStore('request', { keyPath: 'key' });
+        store4.createIndex('id', 'id');
       },
     });
   }
@@ -127,4 +153,16 @@ export class SubscriptionDBApi {
   public async deleteSubscription(id: number): Promise<void> {
     await this.db.delete(this.storeName, id);
   }
+
+  public async addRequest(request: Requset):Promise<void>{
+    const value: RequestStoreValue = {key: request.id, value: request, id: request.id};
+    await this.db.put('request', value);
+  }
+
+  public async getAllRequests(): Promise<Requset[]> {
+    const values: RequestStoreValue[] = await this.db.getAll('request');
+    return values.map((value) => value.value);
+  }
+  
+
 }

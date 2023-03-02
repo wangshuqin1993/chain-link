@@ -1,38 +1,41 @@
 <template>
+  <div class="title">Define Request Method</div>
   <div class="requests-list" v-if="requestsList.length > 0">
     <div v-for="item in requestsList" :key="item.id" class="list-item">
-      <div class="item item-requestName">
-        <span class="item-title">requestName: </span>
-        <span class="item-info">{{ item.formData.requestName }}</span>
+      <div class="item-info">
+        <div class="item item-requestName">
+          <span class="item-title">requestName: </span>
+          <span class="item-info">{{ item.formData.requestName }}</span>
+        </div>
+        <div class="item item-responseName">
+          <span class="item-title">responseName: </span>
+          <span class="item-info">{{ item.formData.responseName }}</span>
+        </div>
+        <div class="item item-url">
+          <span class="item-title">URL: </span>
+          <span class="item-info">{{ item.formData.URL }}</span>
+        </div>
+        <div class="item item-method">
+          <span class="item-title">Method: </span>
+          <span class="item-info">{{ item.formData.Method }}</span>
+        </div>
       </div>
-      <div class="item item-responseName">
-        <span class="item-title">responseName: </span>
-        <span class="item-info">{{ item.formData.responseName }}</span>
-      </div>
-      <div class="item item-url">
-        <span class="item-title">URL: </span>
-        <span class="item-info">{{ item.formData.URL }}</span>
-      </div>
-      <div class="item item-method">
-        <span class="item-title">Method: </span>
-        <span class="item-info">{{ item.formData.Method }}</span>
-      </div>
-      <div>
-        <span>View more</span>
 
-        <span>Edit</span>
+      <div class="view-all">
+        <span class="view" @click="viewAll(item.id)">View All</span>
+        <span class="delete" @click="deleteRequest(item)">Delete</span>
       </div>
     </div>
+
   </div>
-  <div class="requests">
-    <div class="requests-header">
-      <a-button type="dashed" style="width: 60%" @click="addRequestsVisible = true">
-        <PlusOutlined />
-        Add Request
-      </a-button>
-    </div>
+
+  <div class="requests-header">
+    <a-button type="dashed" style="width: 100%" @click="addRequest">
+      <PlusOutlined />
+      Add New Request Method
+    </a-button>
   </div>
-  <a-modal v-model:visible="addRequestsVisible" title="Add Request" :footer="null">
+  <a-modal v-model:visible="addRequestsVisible" title="Add New Request Method" :footer="null" width="658px">
     <a-form ref="formRef" :model="addRequestsForm">
       <a-form-item name="requestName" label="requestName" :rules="[{ required: true, message: 'Missing requestName' }]">
         <a-input v-model:value="addRequestsForm.requestName" placeholder="please input requestName"></a-input>
@@ -53,7 +56,7 @@
 
       <a-space v-for="(headerItem, index) in addRequestsForm.headers" :key="headerItem.id"
         style="display: flex; margin-bottom: 8px" align="baseline">
-        <a-form-item :name="['headers', index, 'key']" :label="index === 0 ? 'Headers' : ''" :rules="{ required: false }"
+        <a-form-item :name="['headers', index, 'key']" :label="index === 0 ? 'Headers' : ' '" :rules="{ required: false }"
           :colon="index === 0 ? true : false">
           <a-input v-model:value="headerItem.key" />
         </a-form-item>
@@ -69,7 +72,7 @@
 
       <a-space v-for="(paramItem, index) in addRequestsForm.params" :key="paramItem.id"
         style="display: flex; margin-bottom: 8px" align="baseline">
-        <a-form-item :name="['params', index, 'key']" :label="index === 0 ? 'params' : ''" :rules="{ required: false }">
+        <a-form-item :name="['params', index, 'key']" :label="index === 0 ? 'params' : ' '" :rules="{ required: false }">
           <a-input v-model:value="paramItem.key" />
         </a-form-item>
         <a-form-item label="" :name="['params', index, 'name']" :rules="{
@@ -83,7 +86,7 @@
 
       <a-space v-for="(dataItem, index) in addRequestsForm.data" :key="dataItem.id"
         style="display: flex; margin-bottom: 8px" align="baseline">
-        <a-form-item :name="['data', index, 'key']" :label="index === 0 ? 'data' : ''" :rules="{ required: false }">
+        <a-form-item :name="['data', index, 'key']" :label="index === 0 ? 'data' : ' '" :rules="{ required: false }">
           <a-input v-model:value="dataItem.key" />
         </a-form-item>
         <a-form-item label="" :name="['data', index, 'value']" :rules="{
@@ -106,7 +109,7 @@
       </a-form-item>
 
       <a-form-item class="btn-box">
-        <a-button type="primary" html-type="submit" @click="submitForm">Submit</a-button>
+        <a-button type="primary" html-type="submit" @click="submitForm">Add</a-button>
         <a-button style="margin-left: 10px" @click="resetForm">Reset</a-button>
       </a-form-item>
     </a-form>
@@ -117,7 +120,6 @@
 import { ref, reactive, watch } from "vue";
 import type { FormInstance } from 'ant-design-vue';
 import { MinusCircleOutlined, PlusCircleOutlined, PlusOutlined } from '@ant-design/icons-vue';
-import { date } from "joi";
 const formRef = ref<FormInstance>();
 const addRequestsForm = reactive({
   requestName: '',
@@ -135,8 +137,9 @@ const methodsList = ref([
   { label: 'GET', value: 'GET' },
   { label: 'POST', value: 'POST' }
 ]);
-// const requestsList = ref([]);
-const requestsList = JSON.parse(localStorage.getItem('requestsListData'));
+// const requestsList = ref(JSON.parse(localStorage.getItem('requestsListData'))) || ref([]);
+const requestsList = ref([]);
+console.log(requestsList.value)
 
 interface Sights {
   value: string;
@@ -156,6 +159,7 @@ const addHeader = () => {
   addRequestsForm.headers.push({
     key: undefined,
     value: undefined,
+    id: Date.now()
   });
 };
 
@@ -164,16 +168,45 @@ const submitForm = () => {
   formRef.value
     .validate()
     .then(() => {
+      addRequestsVisible.value = false;
       requestsList.value.push({ id: Date.now(), formData: addRequestsForm });
       localStorage.setItem('requestsListData', JSON.stringify(requestsList.value));
       console.log(requestsList.value, 'values', addRequestsForm);
       emit('submitRequestForm', addRequestsForm)
-
     })
     .catch(error => {
       console.log('error', error);
     });
 };
+
+const viewAll = (id: number) => {
+  const data = JSON.parse(localStorage.getItem('requestsList.valueData'));
+  if (data) {
+    data.map((item: any) => {
+      if (item.id === id) {
+        Object.assign(addRequestsForm, item.formData);
+      }
+    })
+  } else {
+    Object.assign(addRequestsForm, {});
+  }
+  addRequestsVisible.value = true;
+}
+
+const deleteRequest = (item: any) => {
+  let index = requestsList.value.indexOf(item);
+  if (index !== -1) {
+    requestsList.value.splice(index, 1);
+  }
+  localStorage.setItem('requestsListData', JSON.stringify(requestsList.value));
+  emit('submitRequestForm', addRequestsForm)
+  // console.log(requestsList.value, 'requestsList.value')
+}
+
+const addRequest = () => {
+  addRequestsVisible.value = true;
+  formRef.value.resetFields();
+}
 
 const resetForm = () => {
   formRef.value.resetFields();
@@ -182,13 +215,21 @@ const resetForm = () => {
 </script>
 
 <style scoped lang="scss">
-.requests-list {
+.title {
+  font-weight: 700;
   font-size: 16px;
+  margin-bottom: 12px;
+}
 
+.requests-list {
   .list-item {
+    font-size: 16px;
     padding: 24px;
+    margin-bottom: 24px;
     border: 1px solid #e7e8ea;
     border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
 
     .item {
       display: flex;
@@ -198,43 +239,60 @@ const resetForm = () => {
       }
 
       .item-title {
-        width: 50%;
+        width: 142px;
+      }
+
+      .item-info {
+        max-width: 100%;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+    }
+
+    .view-all {
+      font-size: 14px;
+
+      .view,
+      .delete {
+        display: inline-block;
+        cursor: pointer;
+
+        &:hover {
+          color: #5d80de;
+        }
+      }
+
+      .delete {
+        margin-left: 12px;
       }
     }
   }
 }
 
-.requests {
-  font-size: 16px;
-  border-radius: 8px;
+.requests-header {
+  margin-top: 24px;
+  margin-bottom: 32px;
+  display: flex;
+  justify-content: space-between;
 
-  .requests-header {
-    display: flex;
-    justify-content: space-between;
+  .ant-btn {
+    height: 42px;
+    border-radius: 8px;
+  }
 
-    .ant-btn {
-      height: 42px;
-      border-radius: 8px;
-    }
+  .add-btn {
+    cursor: pointer;
 
-    .add-btn {
-      cursor: pointer;
-
-      &:hover {
-        color: #5d80de;
-      }
-
-
+    &:hover {
+      color: #a0b7f7;
     }
   }
 }
+
 
 :deep(.ant-form-item-label>label) {
   width: 124px;
-}
-
-:deep(.ant-space-item) {
-  // margin-top: -24px;
 }
 
 .btn-box {

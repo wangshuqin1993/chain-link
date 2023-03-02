@@ -15,16 +15,6 @@
                 <a @click="toDetail(text)">{{ text }}</a>
               </div>
             </template>
-            <template v-if="column.dataIndex === 'balance'">
-              <div>
-                {{ ethers.utils.formatEther(text) }}
-              </div>
-            </template>
-            <template v-if="column.dataIndex === 'consumers'">
-              <div>
-                {{ text.length }}
-              </div>
-            </template>
           </template>
         </a-table>
       </a-tab-pane>
@@ -47,7 +37,6 @@ const router = useRouter();
 const showWallets = ref();
 const activeKey = ref('1');
 const subscriptionList: Ref<Subscription[]> = ref([]);
-const subscriptionData = reactive({});
 const currentsubscriptionId = ref(1)
 const columns = [
   {
@@ -64,7 +53,7 @@ const columns = [
   },
   {
     title: 'Consumers',
-    dataIndex: 'consumers',
+    dataIndex: 'consumerCount',
     align: "center",
     key: 'consumersCount',
   },
@@ -82,6 +71,7 @@ subscriptionDBApi.open()
 const searchSubscriptionByOwner = (owner: string) => {
   subscriptionDBApi.searchSubscriptionByOwner(owner).then(data => {
     subscriptionList.value = data;
+    console.log(data, 'data')
   })
 }
 const account = useOnboard().connectedWallet.value?.accounts[0].address;
@@ -102,7 +92,7 @@ const createSubscription = () => {
     if (provider && network) {
       registry = new RegistryApi(provider, network);
       registry.createSubscription().then(receipt => {
-        console.log("receipt:", receipt);
+        // console.log("receipt:", receipt);
         const contract = registry.contract;
         const events = contract.interface.parseLog(receipt.logs[0]);
         currentsubscriptionId.value = events.args[0].toNumber();
@@ -133,7 +123,6 @@ const createSubscription = () => {
 
 
 const toDetail = (id: number) => {
-  console.log(id)
   router.push(`/subscription-detail/${id}`)
 }
 </script>
@@ -141,8 +130,11 @@ const toDetail = (id: number) => {
 <style scoped lang="scss">
 .subscription-view {
   text-align: left;
-  max-width: 1920px;
-  margin: 32px;
+  max-width: 1440px;
+  margin: 96px 32px 32px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  padding: 24px;
 
   .subscriptions-list {
 

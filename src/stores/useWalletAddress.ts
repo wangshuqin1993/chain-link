@@ -3,7 +3,7 @@ import { defineStore } from "pinia";
 
 export const useWalletAddress = defineStore("walletAddress", () => {
   const walletAddress = ref('');
-  walletAddress.value = localStorage.getItem('') || ''
+  walletAddress.value = localStorage.getItem('') || '';
   const setWalletAddress = (val: string) => {
     walletAddress.value = val
   };

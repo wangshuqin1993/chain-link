@@ -31,7 +31,15 @@
         <div class="title">Consumers</div>
         <a-button @click="addConsumer">Add consumer</a-button>
       </div>
-      <a-table :columns="consumersColumns" :dataSource="consumersList" :pagination="false"></a-table>
+      <a-table :columns="consumersColumns" :dataSource="consumersList" :pagination="false">
+        <template #bodyCell="{ column, text, record }">
+          <template v-if="column.dataIndex === 'action'">
+            <span>
+              <a @click="deleteConsumer(record)">Delete</a>
+            </span>
+          </template>
+        </template>
+      </a-table>
     </div>
   </div>
 
@@ -134,12 +142,6 @@ const consumersColumns = [
     align: "center",
     key: 'addTime',
   },
-  // {
-  //   title: 'Last Fulfillment',
-  //   dataIndex: 'addTime',
-  //   align: "center",
-  //   key: 'addTime',
-  // },
   {
     title: 'Action',
     dataIndex: 'action',
@@ -218,6 +220,10 @@ const confirmAddConsumer = () => {
   }
 }
 
+const deleteConsumer = (val: any) => {
+  console.log(val, 'val')
+}
+
 
 
 const getSubscription = (id: number) => {
@@ -237,10 +243,13 @@ const getSubscription = (id: number) => {
 
 <style scoped lang="scss">
 .subscription-detail {
-  max-width: 1920px;
-  margin: 32px;
+  max-width: 1440px;
+  margin: 96px 32px 32px;
   text-align: left;
   color: #1a2b6b;
+  background-color: #ffffff;
+  border-radius: 8px;
+  padding: 24px;
 
   .funds-title,
   .consumer-title {
@@ -253,6 +262,7 @@ const getSubscription = (id: number) => {
     }
 
     .ant-btn {
+      margin-bottom: 16px;
       color: #ffffff;
       font-weight: 700;
       width: 132px;

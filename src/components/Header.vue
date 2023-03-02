@@ -94,12 +94,17 @@ watch(
 
 <style scoped lang="scss">
 .header {
+  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
   padding: 0 32px;
   height: 64px;
   color: #1a2b6b;
   background-color: #ffffff;
   display: flex;
   justify-content: space-between;
+  z-index: 1;
 
   .header-left {
     display: flex;

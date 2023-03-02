@@ -37,9 +37,10 @@ init({
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  max-width: 1920px;
+  max-width: 1440px;
   margin: 0 auto;
   font-size: 14px;
+  padding-bottom: 2px;
 }
 
 nav {

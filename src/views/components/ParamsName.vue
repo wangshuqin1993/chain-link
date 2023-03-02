@@ -1,20 +1,20 @@
 <template>
   <div class="params-name">
     <a-form ref="formRef" name="dynamic_form_item" :model="dynamicValidateForm">
-      <div class="title" v-if="dynamicValidateForm.paramsNames.length > 0">paramsName:</div>
+      <div class="title">Define Param Name</div>
       <a-form-item v-for="(paramsName, index) in dynamicValidateForm.paramsNames" :key="paramsName.key"
         :name="['paramsNames', index, 'value']" :rules="{
           required: false,
         }">
         <a-input v-model:value="paramsName.value" placeholder="please input paramsName" @pressEnter="submitForm"
-          style="width: 60%; margin-right: 8px" />
+          style="width: 94%; margin-right: 8px" @blur="onFieldBlur(index)" />
         <MinusCircleOutlined class="dynamic-delete-button" :disabled="dynamicValidateForm.paramsNames.length === 1"
           @click="removeparamsName(paramsName)" />
       </a-form-item>
       <a-form-item>
-        <a-button type="dashed" style="width: 60%" @click="addparamsName">
+        <a-button type="dashed" style="width: 100%" @click="addparamsName">
           <PlusOutlined />
-          Add paramsName
+          Add New Parameter
         </a-button>
       </a-form-item>
     </a-form>
@@ -37,6 +37,13 @@ const formRef = ref<FormInstance>();
 const dynamicValidateForm = reactive<{ paramsNames: paramsName[] }>({
   paramsNames: [],
 });
+
+const onFieldBlur = (index: number) => {
+  console.log(index, 'blur')
+  emit('submitParamsForm', dynamicValidateForm.paramsNames)
+}
+
+
 const submitForm = () => {
   formRef.value
     .validate()
@@ -66,6 +73,7 @@ const addparamsName = () => {
 <style scoped lang="scss">
 .params-name {
   .title {
+    font-weight: 700;
     font-size: 16px;
     margin-bottom: 12px;
   }

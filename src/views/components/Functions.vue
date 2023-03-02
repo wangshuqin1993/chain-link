@@ -1,7 +1,8 @@
 <template>
   <div class="functions">
-    <div>Functions</div>
-    <a-textarea v-model:value="functionValue" :rows="4" placeholder="please enter..." @pressEnter="getFunctionData" />
+    <div class="title">Define Calculation Method</div>
+    <a-textarea v-model:value="functionValue" :rows="4" :autosize="true" placeholder="please enter..."
+      @blur="getFunctionData" />
   </div>
 </template>
 
@@ -19,5 +20,13 @@ const getFunctionData = (val: any) => {
 </script>
 
 <style lang="scss" scoped>
-.functions {}
+.functions {
+  margin-bottom: 32px;
+
+  .title {
+    font-weight: 700;
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+}
 </style>
