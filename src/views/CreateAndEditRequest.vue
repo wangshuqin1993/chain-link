@@ -99,7 +99,7 @@ onMounted(() => {
 </script>
 <style lang='scss' scoped>
 .create-edit-request {
-  max-width: 1920px;
+  max-width: 1440px;
   margin: 32px;
   text-align: left;
 

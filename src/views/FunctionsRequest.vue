@@ -17,8 +17,9 @@ const createRequest = (val: string) => {
 
 <style scoped lang="scss">
 .functions-request-view {
-  max-width: 1920px;
-  margin: 32px auto;
+  max-width: 1440px;
+  margin: 32px;
+  text-align: left;
 
   .ant-btn {
     height: 42px;

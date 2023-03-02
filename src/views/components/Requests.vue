@@ -105,7 +105,7 @@
         <a-input v-model:value="addRequestsForm.responseType" placeholder="please input responseType"></a-input>
       </a-form-item>
 
-      <a-form-item>
+      <a-form-item class="btn-box">
         <a-button type="primary" html-type="submit" @click="submitForm">Submit</a-button>
         <a-button style="margin-left: 10px" @click="resetForm">Reset</a-button>
       </a-form-item>
@@ -235,5 +235,13 @@ const resetForm = () => {
 
 :deep(.ant-space-item) {
   // margin-top: -24px;
+}
+
+.btn-box {
+  text-align: center;
+
+  .ant-btn {
+    width: 132px;
+  }
 }
 </style>

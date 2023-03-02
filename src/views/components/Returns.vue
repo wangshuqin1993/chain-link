@@ -10,7 +10,7 @@
           <a-input v-model:value="addReturnForm.returnParam" placeholder="please input returnParam"></a-input>
         </a-form-item>
 
-        <a-form-item>
+        <a-form-item class="btn-box">
           <a-button type="primary" html-type="submit" @click="submitForm">Submit</a-button>
           <a-button style="margin-left: 10px" @click="resetForm">Reset</a-button>
         </a-form-item>
@@ -46,5 +46,13 @@ const resetForm = () => {
 }
 </script>
 <style lang='scss' scoped>
-.return {}
+.return {
+  .btn-box {
+    text-align: center;
+
+    .ant-btn {
+      width: 132px;
+    }
+  }
+}
 </style>
