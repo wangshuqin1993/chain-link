@@ -73,12 +73,10 @@
 </template>
 
 <script setup lang="ts">
-import { LinkTokenApi } from "@/api/linkTokenApi";
-import { RegistryApi } from "@/api/registryApi";
-import { Consumer, Subscription, SubscriptionDBApi } from "@/db/subscription";
-import { useOnboard } from "@web3-onboard/vue";
+import { Consumer, Subscription } from "@/db/chainlinkDB";
+import { useChainlinkDB, useContractApi } from "@/stores/useStore";
 import { ethers } from "ethers";
-import { ref, onMounted, Ref } from "vue";
+import { ref, Ref, watch } from "vue";
 import { useRoute } from "vue-router";
 const { params } = useRoute();
 const addFundsVisible = ref(false);
@@ -88,13 +86,11 @@ const addFundsAmount = ref();
 const balanceOfLink = ref("0");
 const subscriptionDetailData: Ref<Subscription[]> = ref([]);
 const consumersList: Ref<Consumer[]> = ref([]);
-let registryApi: RegistryApi;
-let linkTokenApi;
-const subscriptionDBApi = new SubscriptionDBApi();
-//get subcription data
-subscriptionDBApi.open().then(() => {
-  getSubscription(parseInt(params.id));
-})
+const chainlinkDB = useChainlinkDB()
+const contractApi = useContractApi()
+const { chainLinkDBApi } = useChainlinkDB()
+const { registryApi, linkTokenApi, walletAddress } = useContractApi()
+
 
 const fundsColumns = [
   {
@@ -151,15 +147,9 @@ const consumersColumns = [
 ]
 
 const showAddFunds = () => {
-  const provider = useOnboard().connectedWallet.value?.provider;
-  const network = useOnboard().connectedWallet.value?.chains[0].id;
-  const account = useOnboard().connectedWallet.value?.accounts[0].address;
-  if (provider && network && account) {
-    linkTokenApi = new LinkTokenApi(provider, network);
-    linkTokenApi.balanceOf(account).then(balance => {
-      balanceOfLink.value = ethers.utils.formatEther(balance);
-    })
-  }
+  contractApi.apiStatus && linkTokenApi?.balanceOf(walletAddress).then(balance => {
+    balanceOfLink.value = ethers.utils.formatEther(balance);
+  })
 
   addFundsVisible.value = true;
 }
@@ -169,28 +159,21 @@ const cancelAddFunds = () => {
 }
 
 const confirmAddFunds = () => {
-  const provider = useOnboard().connectedWallet.value?.provider;
-  const network = useOnboard().connectedWallet.value?.chains[0].id;
-  if (provider && network) {
-    linkTokenApi = new LinkTokenApi(provider, network);
-    registryApi = new RegistryApi(provider, network);
-    let data = ethers.utils.defaultAbiCoder.encode(["uint64"], [params.id]);
-    const weiValue = ethers.utils.parseEther(addFundsAmount.value.toString());
-    linkTokenApi.transferAndCall(registryApi.contract.address, weiValue, data).then(receipt => {
-      console.log(receipt);
-      //update subscription
-      registryApi.getSubscription(params.id).then(t => {
-        console.log("aaa");
-        subscriptionDBApi.updateSubscriptionBalance(parseInt(params.id), ethers.utils.formatEther(t.balance)).then(data => {
-          if (data) {
-            subscriptionDetailData.value = [];
-            subscriptionDetailData.value.push(data);
-          }
-        })
-      });
-      addFundsVisible.value = false;
-    })
-  }
+  let data = ethers.utils.defaultAbiCoder.encode(["uint64"], [params.id]);
+  const weiValue = ethers.utils.parseEther(addFundsAmount.value.toString());
+  contractApi.apiStatus && linkTokenApi?.transferAndCall(registryApi?.contract.address, weiValue, data).then(receipt => {
+    console.log(receipt);
+    //update subscription
+    registryApi?.getSubscription(params.id).then(t => {
+      chainlinkDB.apiStatus && chainLinkDBApi.updateSubscriptionBalance(parseInt(params.id), ethers.utils.formatEther(t.balance)).then(data => {
+        if (data) {
+          subscriptionDetailData.value = [];
+          subscriptionDetailData.value.push(data);
+        }
+      })
+    });
+    addFundsVisible.value = false;
+  })
 }
 
 const addConsumer = () => {
@@ -202,33 +185,38 @@ const cancelAddConsumer = () => {
 }
 
 const confirmAddConsumer = () => {
-  const provider = useOnboard().connectedWallet.value?.provider;
-  const network = useOnboard().connectedWallet.value?.chains[0].id;
-  if (provider && network) {
-    registryApi = new RegistryApi(provider, network);
-    registryApi.addConsumer(parseInt(params.id), addConsumerAddress.value).then(receipt => {
-      console.log(receipt);
-      registryApi.getSubscription(params.id).then(t => {
-        subscriptionDBApi.updateSubscriptionConsumers(parseInt(params.id), t.consumers).then(data => {
-          if (data) {
-            consumersList.value = data.consumers;
-          }
-        })
-      });
-      addConsumerVisible.value = false;
-    })
-  }
+  console.log("contractApi.apiStatus", contractApi.apiStatus)
+  contractApi.apiStatus && registryApi?.addConsumer(parseInt(params.id), addConsumerAddress.value).then(receipt => {
+    console.log("addConsumer", receipt);
+    registryApi?.getSubscription(params.id).then(t => {
+      chainlinkDB.apiStatus && chainLinkDBApi.addSubscriptionConsumers(parseInt(params.id), t.consumers).then(data => {
+        if (data) {
+          consumersList.value = data.consumers;
+        }
+      })
+    });
+    addConsumerVisible.value = false;
+  })
 }
 
 const deleteConsumer = (val: any) => {
   console.log(val, 'val')
+  contractApi.apiStatus && registryApi?.removeConsumer(params.id, val.address).then(receipt => {
+    console.log("deleteConsumer", receipt);
+    registryApi?.getSubscription(params.id).then(t => {
+      chainlinkDB.apiStatus && chainLinkDBApi.removeSubscriptionConsumers(parseInt(params.id), t.consumers).then(data => {
+        if (data) {
+          consumersList.value = data.consumers;
+        }
+      })
+    });
+  })
 }
 
 
 
 const getSubscription = (id: number) => {
-  subscriptionDBApi.getSubscription(id).then(data => {
-    console.log("getSubscription", id, data);
+  chainlinkDB.apiStatus && chainLinkDBApi.getSubscription(id).then(data => {
     subscriptionDetailData.value = [];
     if (data) {
       subscriptionDetailData.value.push(data);
@@ -237,7 +225,18 @@ const getSubscription = (id: number) => {
   })
 }
 
-
+watch([() => chainlinkDB.networkId, () => chainlinkDB.apiStatus],
+  (newValues, oldValues) => {
+    if (newValues[0] && newValues[1]
+      && (newValues[0] != oldValues[0]
+        || newValues[1] != oldValues[1])
+    ) {
+      getSubscription(parseInt(params.id));
+    }
+  }, {
+  deep: true, // 监视对象内部属性的变化
+  immediate: true
+});
 
 </script>
 
