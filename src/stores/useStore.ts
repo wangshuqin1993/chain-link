@@ -2,9 +2,21 @@ import { defineStore } from "pinia";
 import { RegistryApi } from "@/api/registryApi";
 import { EIP1193Provider } from "@web3-onboard/core";
 import { LinkTokenApi } from "@/api/linkTokenApi";
-import { ChainLinkDBApi } from "@/db/chainlinkDB";
+import { ChainLinkDBApi, ConsumerTemplate } from "@/db/chainlinkDB";
 import { ref, ShallowRef, shallowRef } from "vue";
+import { abis, consumer_bytecode } from "@/api/contractConfig";
 
+const initCusumerTemplate = (chainLinkDBApi: ChainLinkDBApi) => {
+
+  const consumerTemplate: ConsumerTemplate = {
+    id: 1,
+    source: "",
+    abi: abis.consumer,
+    bytecode: consumer_bytecode
+  };
+
+  chainLinkDBApi.addConsumerTemplate(consumerTemplate);
+}
 
 export const useChainlinkDB = defineStore("chainlinkDB", () => {
   const chainLinkDBApi = shallowRef(new ChainLinkDBApi());
@@ -16,6 +28,7 @@ export const useChainlinkDB = defineStore("chainlinkDB", () => {
     networkId.value = network;
     chainLinkDBApi.value.open().then(() => {
       apiStatus.value = true;
+      initCusumerTemplate(chainLinkDBApi.value);
     })
   };
   const switchNetwork = (network: string) => {
@@ -37,7 +50,7 @@ export const useContractApi = defineStore("contractApi", () => {
   const initContractApi = (web3Provider: EIP1193Provider, network: string, address: string) => {
     provider.value = web3Provider;
     networkId.value = network;
-    walletAddress.value = address;
+    walletAddress.value = address.toLowerCase();
     registryApi.value = new RegistryApi(web3Provider, network)
     linkTokenApi.value = new LinkTokenApi(web3Provider, network);
     apiStatus.value = true;

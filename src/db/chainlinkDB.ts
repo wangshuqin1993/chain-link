@@ -40,16 +40,50 @@ interface RequestStoreValue {
   id: number,
 }
 
-interface ConsumerTemplate {
+export interface ConsumerTemplate {
   id: number,
   source: string,
-  abi: string,
+  abi: any,
   bytecode: string
 }
 
 interface ConsumerTemplateValue {
   key: number,
   value: ConsumerTemplate,
+}
+
+export interface ConsumerContract {
+  id: number | undefined,
+  address: string,
+  consumerTemplateId: number,
+  createTime: string,
+  owner: string,
+  network: string
+}
+
+interface ConsumerContractValue {
+  value: ConsumerContract,
+  owner: string,
+  network: string
+}
+
+interface ExecuteRequest {
+  execId: number,
+  requestId: number,
+  consumerContractId: number,
+  createTime: string,
+  owner: string,
+  secrets: string,
+  secretsLocation: string,
+  args: string[],
+  subscriptionId: number,
+  gasLimit: number
+}
+
+interface ExecuteRequestValue {
+  key: number,
+  value: ExecuteRequest,
+  consumerContractId: number
 }
 
 
@@ -82,6 +116,16 @@ interface MyDB extends DBSchema {
   consumerTemplate: {
     key: number
     value: ConsumerTemplate;
+  };
+  consumerContract: {
+    key: number
+    value: ConsumerContract;
+    indexes: { owner_network: string };
+  };
+  executeRequest: {
+    key: number
+    value: ExecuteRequest;
+    indexes: { consumerContractId: number }
   }
 }
 
@@ -104,7 +148,11 @@ export class ChainLinkDBApi {
         store3.createIndex('owner', 'owner');
         const store4 = db.createObjectStore('request', { keyPath: 'key' });
         store4.createIndex('id', 'id');
-        db.createObjectStore('consumerTemplate', { keyPath: 'key' })
+        db.createObjectStore('consumerTemplate', { keyPath: 'key' });
+        const store5 = db.createObjectStore('consumerContract', { keyPath: 'key', autoIncrement: true });
+        store5.createIndex('owner_network', ['owner', 'network']);
+        const store6 = db.createObjectStore('executeRequest', { keyPath: 'key' });
+        store6.createIndex('consumerContractId', 'consumerContractId');
       },
     });
   }
@@ -203,10 +251,7 @@ export class ChainLinkDBApi {
 
   public async addConsumerTemplate(consumerTemplate: ConsumerTemplate): Promise<void> {
     const value: ConsumerTemplateValue | undefined = await this.db.get('consumerTemplate', consumerTemplate.id);
-    if (value) {
-      value.value = consumerTemplate;
-      await this.db.put('consumerTemplate', value);
-    } else {
+    if (!value) {
       const createValue: ConsumerTemplateValue = { key: consumerTemplate.id, value: consumerTemplate };
       await this.db.put('consumerTemplate', createValue);
     }
@@ -217,4 +262,41 @@ export class ChainLinkDBApi {
     return values.map((value) => value.value);
   }
 
+  //添加合约信息
+  public async addConsumerContract(consumerContract: ConsumerContract): Promise<void> {
+    const value: ConsumerContractValue = { value: consumerContract, owner: consumerContract.owner, network: consumerContract.network };
+    await this.db.add("consumerContract", value);
+  }
+
+
+  public async getConsumerContract(id: number): Promise<ConsumerContract | undefined> {
+    const value: any = await this.db.get("consumerContract", id);
+    if (value) {
+      value.value.id = value.key
+      return value.value;
+    }
+    return undefined;
+  }
+  //查询合约列表
+  public async searchConsumerContractByOwnerAndNetwork(owner: string, network: string): Promise<ConsumerContract[]> {
+    const objectStore = this.db.transaction("consumerContract").objectStore("consumerContract");
+    const index = objectStore.index("owner_network");
+    const values: any[] = await index.getAll([owner, network]);
+    return values.map((value) => {
+      value.value.id = value.key;
+      return value.value
+    });
+  }
+
+  //添加执行信息
+  public async addExecuteRequest(executeRequest: ExecuteRequest): Promise<void> {
+    const value: ExecuteRequestValue = { key: executeRequest.execId, value: executeRequest, consumerContractId: executeRequest.consumerContractId };
+    await this.db.put("executeRequest", value);
+  }
+  //查询执行列表
+  public async searchExecuteRequestByConsumerContractId(consumerContractId: string): Promise<ExecuteRequest[]> {
+    const range = IDBKeyRange.only(consumerContractId);
+    const values: ExecuteRequestValue[] = await this.db.getAllFromIndex("executeRequest", 'consumerContractId', range);
+    return values.map((value) => value.value);
+  }
 }

@@ -5,7 +5,6 @@ import injectedModule from '@web3-onboard/injected-wallets'
 import { useOnboard } from '@web3-onboard/vue'
 import { useWalletAddress } from "@/stores/useWalletAddress";
 import walletTitle from '../assets/icons/logo-white.svg';
-import { RegistryApi } from "@/api/registryApi";
 import { useChainlinkDB, useContractApi } from '@/stores/useStore';
 
 const walletAddress = useWalletAddress()
@@ -139,8 +138,11 @@ const onClickConnect = async () => {
   }
 }
 
+
+
 watch(() => connectedWallet.value, (newVal, oldVal) => {
   if (newVal && newVal !== oldVal) {
+    console.info("start init")
     const provider = newVal.provider;
     const network = newVal.chains[0].id;
     const address = newVal.accounts[0].address;

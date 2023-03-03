@@ -26,7 +26,16 @@ import { message } from "ant-design-vue";
 import Wallets from "../components/Wallets.vue";
 import * as ethers from "ethers";
 import { useOnboard } from '@web3-onboard/vue'
+import { useChainlinkDB, useContractApi } from "@/stores/useStore";
+import { networkConfig } from "@/api/contractConfig";
+import { ConsumerContract } from "@/db/chainlinkDB";
+import dayjs from "dayjs";
 const { connectedWallet } = useOnboard();
+
+const chainlinkDB = useChainlinkDB()
+const contractApi = useContractApi()
+
+
 const dataSource = ref([{ contractAddress: '1234567dfghu', createdTime: '2023-02-28', id: 2343 }]);
 const visible = ref(false);
 const loading = ref(false);
@@ -66,25 +75,36 @@ const sendRequest = (val: any) => {
 }
 
 const deployBtn = async () => {
-  const isWalletAccount = window.localStorage.getItem("alreadyConnectedWallets");
-  if (isWalletAccount == null || isWalletAccount === '[]') {
-    showWallets.value?.onClickConnect();
-  } else {
-    loading.value = true;
-    const data = connectedWallet.value?.provider
-    console.log(data, '909090')
-    const provider = new ethers.providers.Web3Provider(data);
-    const accounts = await provider.send('eth_requestAccounts', []);
+  console.log("start")
+  if (contractApi.apiStatus && chainlinkDB.apiStatus) {
+    let res = await chainlinkDB.chainLinkDBApi.getAllConsumerTemplate();
+    console.log("provider", contractApi.provider)
+    const rpcProvider = new ethers.providers.Web3Provider(contractApi.provider);
     const factory = new ethers.ContractFactory(
-      abi,
-      bytecode,
-      provider.getSigner()
+      res[0].abi,
+      res[0].bytecode,
+      rpcProvider.getSigner()
     );
     try {
-      let value = {}
+      let value = {
+        oracleAddress: networkConfig[contractApi.networkId].functionsOracleProxy
+      }
       const contract = await factory.deploy(...Object.values(value));
       await contract.deployed();
+      console.log("contract", contract);
+      const consumerContract: ConsumerContract = {
+        id: undefined,
+        address: contract.address,
+        consumerTemplateId: res[0].id,
+        createTime: dayjs().format('YYYY-MM-DD HH:mm:ss'),
+        owner: contractApi.walletAddress,
+        network: contractApi.networkId
+      }
+      await chainlinkDB.chainLinkDBApi.addConsumerContract(consumerContract)
+      const list = await chainlinkDB.chainLinkDBApi.searchConsumerContractByOwnerAndNetwork(contractApi.walletAddress, contractApi.networkId);
+      console.log(list);
     } catch (err: any) {
+      console.log("err", err)
       message.error(err)
     } finally {
       loading.value = false;
