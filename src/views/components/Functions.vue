@@ -7,8 +7,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, watch } from "vue";
+
+const props = defineProps({
+  functionData: String,
+});
+
+console.log(props.functionData, 'props')
+
 const functionValue = ref<string>('');
+
+
 const emit = defineEmits(["getFunctionData"]);
 
 const getFunctionData = (val: any) => {
@@ -16,6 +25,17 @@ const getFunctionData = (val: any) => {
   console.log(functionValue.value, 'val')
   emit('getFunctionData', functionValue.value)
 }
+
+watch(() => props.functionData,
+  (val) => {
+    if (val) {
+      functionValue.value = val;
+      emit('getFunctionData', functionValue.value)
+    }
+  }, {
+  deep: true,
+  immediate: true
+})
 
 </script>
 

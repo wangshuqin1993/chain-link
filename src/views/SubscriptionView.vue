@@ -10,9 +10,14 @@
         <a-table :dataSource="subscriptionList" :columns="columns" :pagination="false">
           <template #bodyCell="{ column, text }">
             <template v-if="column.dataIndex === 'id'">
-              <div class="table-detail">
+              <div class="table-detail" @click="toDetail(text)">
                 <span class="point"></span>
-                <a @click="toDetail(text)">{{ text }}</a>
+                <a>{{ text }}</a>
+              </div>
+            </template>
+            <template v-if="column.dataIndex === 'balance'">
+              <div>
+                {{ text + ' Link' }}
               </div>
             </template>
           </template>
@@ -123,7 +128,7 @@ const toDetail = (id: number) => {
 .subscription-view {
   text-align: left;
   max-width: 1440px;
-  margin: 96px 32px 32px;
+  margin: 32px;
   background-color: #ffffff;
   border-radius: 8px;
   padding: 24px;

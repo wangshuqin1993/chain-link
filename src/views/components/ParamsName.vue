@@ -2,7 +2,7 @@
   <div class="params-name">
     <a-form ref="formRef" name="dynamic_form_item" :model="dynamicValidateForm">
       <div class="title">Define Param Name</div>
-      <a-form-item v-for="(paramsName, index) in dynamicValidateForm.paramsNames" :key="paramsName.key"
+      <a-form-item v-for="(paramsName, index) in dynamicValidateForm.paramsNames" :key="paramsName"
         :name="['paramsNames', index, 'value']" :rules="{
           required: false,
         }">
@@ -22,14 +22,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from "vue";
+import { ref, reactive, watch } from "vue";
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons-vue';
 import type { FormInstance } from 'ant-design-vue';
 
 interface paramsName {
   value: string;
-  key: number;
+  // key: number;
 }
+
+const props = defineProps({
+  paramsData: Array,
+})
 
 const emit = defineEmits(["submitParamsForm"])
 
@@ -40,6 +44,7 @@ const dynamicValidateForm = reactive<{ paramsNames: paramsName[] }>({
 
 const onFieldBlur = (index: number) => {
   console.log(index, 'blur')
+  console.log('values', dynamicValidateForm.paramsNames);
   emit('submitParamsForm', dynamicValidateForm.paramsNames)
 }
 
@@ -48,7 +53,7 @@ const submitForm = () => {
   formRef.value
     .validate()
     .then(() => {
-      console.log('values', dynamicValidateForm.paramsNames);
+      // console.log('values', dynamicValidateForm.paramsNames);
       emit('submitParamsForm', dynamicValidateForm.paramsNames)
     })
     .catch(error => {
@@ -62,12 +67,26 @@ const removeparamsName = (item: paramsName) => {
     dynamicValidateForm.paramsNames.splice(index, 1);
   }
 };
+
 const addparamsName = () => {
   dynamicValidateForm.paramsNames.push({
     value: '',
-    key: Date.now(),
   });
 };
+
+watch(() => props.paramsData,
+  (val) => {
+    if (val) {
+      dynamicValidateForm.paramsNames = val;
+      emit('submitParamsForm', dynamicValidateForm.paramsNames)
+    }
+  }, {
+  deep: true, // 监视对象内部属性的变化
+  immediate: true
+}
+)
+
+
 </script>
 
 <style scoped lang="scss">

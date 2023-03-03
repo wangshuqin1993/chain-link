@@ -21,17 +21,51 @@ interface SubscriptionStoreValue {
   owner: string;
 }
 
-interface Scerets {
+interface ItemList {
+  key: string,
+  value: string,
+}
+
+interface ParamsItem {
+  value: string,
+  paramsValue: string,
+}
+
+interface RequestItem {
+  requestName: string,
+  responseName: string,
+  url: string,
+  method: string,
+  headers: ItemList[],
+  params: ItemList[],
+  data: ItemList[],
+  responseType: string,
+  timeout: number,
+}
+
+export interface SceretsItem {
+  secretsname: string,
   secretsLocation: string,
   secretsURL: string,
-  secrets: [],
-  args: [],
+  secrets: ItemList[],
+  args: ItemList[],
 }
+
+export interface ReturnItem {
+  returntypre: string,
+  returnParam: string,
+}
+
 interface Requset {
   id: number,
   addTime: string,
   source: string,
-  scerets: Scerets,
+  scerets: SceretsItem,
+  secretsName: string,
+  paramsValue: ParamsItem[],
+  requsetValue: RequestItem[],
+  calculation: string,
+  returnValue: ReturnItem,
 }
 
 interface RequestStoreValue {
@@ -249,6 +283,32 @@ export class ChainLinkDBApi {
     return values.map((value) => value.value);
   }
 
+  public async searchRequestById(id: number): Promise<Requset | undefined> {
+    console.log(id)
+    const value: RequestStoreValue |undefined = await this.db.get('request', id);
+    if(value) {
+      return value.value;
+    } else {
+      return undefined;
+    }
+  }
+
+  public async deleteRequestById(id: number): Promise<void> {
+    await this.db.delete('request',id);
+    return undefined
+  }
+
+  public async updateRequest(requset: Requset): Promise<Requset | undefined> {
+    const value: RequestStoreValue | undefined = await this.db.get('request',requset.id);
+    if (value) {
+      value.value =  JSON.parse(JSON.stringify(requset));
+      await this.db.put('request', value);
+      return value.value;
+    }
+    return undefined;
+  }
+
+
   public async addConsumerTemplate(consumerTemplate: ConsumerTemplate): Promise<void> {
     const value: ConsumerTemplateValue | undefined = await this.db.get('consumerTemplate', consumerTemplate.id);
     if (!value) {
@@ -277,6 +337,7 @@ export class ChainLinkDBApi {
     }
     return undefined;
   }
+  
   //查询合约列表
   public async searchConsumerContractByOwnerAndNetwork(owner: string, network: string): Promise<ConsumerContract[]> {
     const objectStore = this.db.transaction("consumerContract").objectStore("consumerContract");

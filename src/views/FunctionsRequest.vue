@@ -1,7 +1,15 @@
 <template>
   <div class="functions-request-view">
     <a-button class="create-btn" @click="createRequest('1')">Create FunctionsRequest</a-button>
-    <a-table :columns="columns" :dataSource="dataSource"></a-table>
+    <a-table :columns="columns" :dataSource="requestDataList" :pagination="false">
+      <template #bodyCell="{ column, record }">
+        <template v-if="column.key === 'action'">
+          <a @click="editRequest(record)">Edit</a>
+          <a-divider type="vertical" />
+          <a @click="deleteRequest(record)">Delete</a>
+        </template>
+      </template>
+    </a-table>
   </div>
 </template>
 
@@ -11,6 +19,7 @@ import { useRouter } from "vue-router";
 import { ChainLinkDBApi } from "@/db/chainlinkDB"
 const router = useRouter();
 const chainLinkDBApi = new ChainLinkDBApi();
+const requestDataList = ref([]);
 
 const columns = [
   {
@@ -21,36 +30,49 @@ const columns = [
   },
   {
     title: 'Name',
-    dataIndex: 'owner',
+    dataIndex: 'secretsName',
     align: "center",
-    key: 'owner',
+    key: 'secretsName',
   },
   {
     title: 'Created',
-    dataIndex: 'createdTime',
+    dataIndex: 'addTime',
     align: "center",
-    key: 'createdTime',
+    key: 'addTime',
   },
 
   {
     title: 'Action',
-    dataIndex: 'balance',
+    dataIndex: 'action',
     align: "center",
-    key: 'balance',
+    key: 'action',
   },
 ]
 
-const dataSource = ref([]);
-
 const createRequest = (val: string) => {
-  router.push(`/create-request/${val}`)
+  router.push(`/create-request/${val}/0`)
+}
+
+const editRequest = (val: any) => {
+  router.push(`/create-request/2/${val.id}`)
+}
+
+const deleteRequest = (val: any) => {
+  chainLinkDBApi.deleteRequestById(val.id).then(res => {
+    getRequestList()
+  })
+}
+
+const getRequestList = () => {
+  chainLinkDBApi.getAllRequests().then(res => {
+    // console.log(res, 'getValue')
+    requestDataList.value = res
+  })
 }
 
 onMounted(async () => {
   await chainLinkDBApi.open()
-  chainLinkDBApi.getAllRequests().then(res => {
-    console.log(res, 'getValue')
-  })
+  getRequestList()
 })
 
 </script>
@@ -58,7 +80,7 @@ onMounted(async () => {
 <style scoped lang="scss">
 .functions-request-view {
   max-width: 1440px;
-  margin: 96px 32px 32px;
+  margin: 32px;
   text-align: left;
   background-color: #ffffff;
   border-radius: 8px;

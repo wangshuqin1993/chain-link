@@ -20,7 +20,7 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { ref, reactive } from "vue";
+import { ref, reactive, watch } from "vue";
 import type { FormInstance } from 'ant-design-vue';
 const formRef = ref<FormInstance>();
 const returnTypeList = ref([{ label: 'Functions.encodeUint256', value: 'Functions.encodeUint256' }, { label: 'Functions.encodeInt256', value: 'Functions.encodeInt256' }, { label: 'Functions.encodeString', value: 'Functions.encodeString' }])
@@ -28,6 +28,10 @@ const addReturnForm = reactive({
   returnType: '',
   returnParam: '',
 });
+
+const props = defineProps({
+  returnData: Object,
+})
 const emit = defineEmits(["submitReturnForm"]);
 
 
@@ -46,6 +50,19 @@ const submitForm = () => {
 const resetForm = () => {
   formRef.value.resetFields();
 };
+
+watch(() => props.returnData,
+  (val) => {
+    if (val) {
+      console.log(val, 'watch val')
+      Object.assign(addReturnForm, val);
+      emit('submitReturnForm', addReturnForm)
+    }
+  }, {
+  deep: true,
+  immediate: true
+}
+)
 
 defineExpose({ submitForm });
 </script>

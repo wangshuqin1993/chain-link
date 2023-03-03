@@ -2,36 +2,29 @@
   <div class="create-edit-request">
     <div class="title">{{ title + ' Script' }}</div>
     <div class="content">Script Content</div>
-    <!-- 脚本内容 -->
+
     <!-- 定义参数名 -->
     <div class="request-box">
       <div class="request-left">
-        <ParamsName @submitParamsForm="submitParamsForm"></ParamsName>
-        <Requests @submitRequestForm="submitRequestForm"></Requests>
-        <Functions @getFunctionData="getFunctionData"></Functions>
-        <Returns @submitReturnForm="submitReturnForm" ref="returnFormRef"></Returns>
+        <ParamsName @submitParamsForm="submitParamsForm" :paramsData="updateFormData.paramsValue"></ParamsName>
+        <Requests @submitRequestForm="submitRequestForm" :requsetData="updateFormData.requsetValue"></Requests>
+        <Functions @getFunctionData="getFunctionData" :functionData="updateFormData.calculation"></Functions>
+        <Returns @submitReturnForm="submitReturnForm" ref="returnFormRef" :returnData="updateFormData.returnValue">
+        </Returns>
       </div>
       <div class="request-right">
         <div class="request-right-title">Pipelinefile Preview</div>
         <div class="request-right-content">
           <div class="area">
-            <!-- <div>params</div> -->
             <div v-for="item in paramsValue" :key="item.key">{{ item.paramsValue }}</div>
           </div>
-
           <div class="area">
-            <!-- <div>request</div> -->
             <div style="white-space:pre-line" v-for="(item, index) in requestValue" :key="index">{{ item }}</div>
           </div>
           <div class="area">
-            <!-- <div>function</div> -->
             <div style="white-space:pre-line">{{ functionValue }}</div>
-            <!-- <div v-for="it in functionValue">{{ it }}</div> -->
-            <!-- <a-textarea v-model:value="functionValue"></a-textarea> -->
           </div>
-
           <div class="area">
-            <!-- <div>returns</div> -->
             <div>{{ returnsValue }}</div>
           </div>
         </div>
@@ -40,11 +33,12 @@
 
     <div class="content">Script Param</div>
     <div class="param-left">
-      <Secrets @submitSecretsForm="submitSecretsForm" ref="secretsFormRef"></Secrets>
+      <Secrets @submitSecretsForm="submitSecretsForm" ref="secretsFormRef" :sceretsData="updateFormData.scerets">
+      </Secrets>
     </div>
 
     <div class="btn-box">
-      <a-button @click="createFunction">Create</a-button>
+      <a-button @click="createFunction">{{ buttonInfo }}</a-button>
       <a-button @click="backPage">Back</a-button>
     </div>
   </div>
@@ -57,7 +51,7 @@ import Requests from './components/Requests.vue';
 import Functions from "./components/Functions.vue";
 import Returns from "./components/Returns.vue";
 import Secrets from "./components/Secrets.vue";
-import type { FormInstance } from 'ant-design-vue';
+import { message } from 'ant-design-vue';
 import dayjs from 'dayjs';
 import { ChainLinkDBApi } from "@/db/chainlinkDB"
 const chainLinkDBApi = new ChainLinkDBApi();
@@ -65,34 +59,36 @@ const chainLinkDBApi = new ChainLinkDBApi();
 const { params } = useRoute();
 const router = useRouter();
 const title = ref('');
+const buttonInfo = ref('');
 const paramsValue = ref([]);
 const requestValue = ref([]);
 const functionValue = ref('');
 const returnsValue = ref('');
-const secretsValue = reactive({
-  secretsLocation: '',
-  secretsURL: '', args: [],
-});
-
+const secretsValue = reactive({});
+const returnDBData = reactive({});
+const requestDBdata = ref([]);
 const returnFormRef = ref();
 const secretsFormRef = ref();
+const updateFormData = reactive({});
 
 const submitParamsForm = (val: any) => {
   val.map((item: any, key: number) => {
-    item.paramsValue = `const ${item.value} = arg[${key}]`
+    if (item.value !== '') {
+      item.paramsValue = `const ${item.value} = arg[${key}]`
+    }
   })
   paramsValue.value = val
-  // console.log(val, 'test')
 }
 
 const submitRequestForm = (val: any) => {
-  console.log(val, 'submitRequestForm')
-  setRequestFunction()
+  Object.assign(requestDBdata.value, val);
+  // console.log(val, 'submitRequestForm')
+  setRequestFunction(val)
 }
 
-const setRequestFunction = () => {
-  requestValue.value = [];
-  const data = JSON.parse(localStorage.getItem('requestsListData')) || [];
+const setRequestFunction = (data: any) => {
+  // requestValue.value = [];
+  Object.assign(requestValue.value, []);
   data.map((item: any) => {
     let str = '';
     str += `cosnt ${item.formData.requestName} = Functions.makeHttpRequest({
@@ -102,53 +98,57 @@ const setRequestFunction = () => {
 
     const [${item.formData.responseName}] = await Promise.all([${item.formData.requestName}])
     `
-
-    requestValue.value.push(str)
+    requestValue.value.push(str);
   })
-
 }
 
 const getFunctionData = (val: string) => {
-  console.log(val, 'val')
-  functionValue.value = val
+  // console.log(val, 'val')
+  functionValue.value = val;
 }
 
 const submitReturnForm = (val: any) => {
-  returnsValue.value = `return ${val.returnType}(${val.returnParam})`
+  Object.assign(returnDBData, val);
+  returnsValue.value = `return ${val.returnType}(${val.returnParam})`;
 }
 
 const submitSecretsForm = (val: any) => {
   Object.assign(secretsValue, val)
-  console.log(secretsValue.secretsURL, 'jjjj')
-  // secretsValue.secretsURL = 
+  // console.log(secretsValue.secretsURL, 'jjjj')
 }
 
 const createFunction = async () => {
   returnFormRef.value.submitForm();
   await secretsFormRef.value.submitForm()
-  console.log(secretsValue, 'ppp')
 
-  // console.log(secretsFormRef.value, 'ppp')
-
+  // data1 = JSON.parse(JSON.stringify(paramsValue.value))
+  // console.log(secretsValue,data1, 'ppp')
 
   let source = returnsValue.value + functionValue.value;
   const data = {
-    id: Date.now(),
-    addTime: dayjs().format('YYYY-MM-DD HH:mm:ss'),
+    id: updateFormData.id || Date.now(),
+    addTime: updateFormData.addTime || dayjs().format('YYYY-MM-DD HH:mm:ss'),
+    secretsName: updateFormData.secretsName || JSON.parse(JSON.stringify(secretsValue)).secretsName,
     source: source,
-    scerets: {
-      secretsLocation: secretsValue.secretsLocation,
-      secretsURL: secretsValue.secretsURL
-    },
+    scerets: updateFormData.scerets || JSON.parse(JSON.stringify(secretsValue)),
+    paramsValue: JSON.parse(JSON.stringify(paramsValue.value)),
+    requsetValue: JSON.parse(JSON.stringify(requestDBdata.value)),
+    calculation: functionValue.value,
+    returnValue: JSON.parse(JSON.stringify(returnDBData)),
   }
-  console.log(data, secretsValue.secretsURL, 'data')
-
-
-  // console.log(source, returnsValue.value, '000')
-
-  // chainLinkDBApi.addRequest(data).then(res => {
-  //   console.log(res, '999')
-  // })
+  // console.log(data, secretsValue.secretsURL, 'data')
+  if (params.type === '1') {
+    chainLinkDBApi.addRequest(data).then(res => {
+      // console.log(res, '999')
+      message.success('Create Success');
+      router.go(-1);
+    })
+  } else {
+    chainLinkDBApi.updateRequest(data).then(res => {
+      message.success('Edit Success');
+      router.go(-1);
+    })
+  }
 }
 
 const backPage = () => {
@@ -156,17 +156,28 @@ const backPage = () => {
   router.go(-1);
 }
 
-onMounted(() => {
-  chainLinkDBApi.open()
-  setRequestFunction()
+const searchRequest = () => {
+  let id = Number(params.id);
+  chainLinkDBApi.searchRequestById(id).then(res => {
+    // console.log(res, 'tttttt')
+    Object.assign(updateFormData, res)
+  })
+}
+
+onMounted(async () => {
   title.value = params.type === '1' ? 'Create' : 'Edit';
+  buttonInfo.value = params.type === '1' ? 'Create' : 'Edit';
+  await chainLinkDBApi.open();
+  if (params.type === '2') {
+    searchRequest();
+  }
 })
 
 </script>
 <style lang='scss' scoped>
 .create-edit-request {
   max-width: 1440px;
-  margin: 96px 32px 32px;
+  margin: 32px;
   text-align: left;
   background-color: #ffffff;
   border-radius: 8px;

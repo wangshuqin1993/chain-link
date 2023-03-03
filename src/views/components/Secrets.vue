@@ -1,6 +1,11 @@
 <template>
   <div class="secrets">
     <a-form ref="formRef" :model="secretsForm">
+      <a-form-item name="secretsName" label="secretsName" :rules="[{ required: true }]">
+        <a-input v-model:value="secretsForm.secretsName" placeholder="please input secretsName"
+          @blur="submitForm"></a-input>
+      </a-form-item>
+
       <a-form-item name="secretsLocation" label="secretsLocation" :rules="[{ required: true }]">
         <a-select v-model:value="secretsForm.secretsLocation" :options="secretsLocationList" @change="submitForm" />
       </a-form-item>
@@ -41,17 +46,22 @@
   </div>
 </template>
 <script lang='ts' setup>
-import { ref, reactive } from "vue";
+import { ref, reactive, watch } from "vue";
 import type { FormInstance } from 'ant-design-vue';
 import { MinusCircleOutlined, PlusCircleOutlined } from '@ant-design/icons-vue';
 const formRef = ref<FormInstance>();
 const secretsForm = reactive({
+  secretsName: '',
   secretsLocation: '',
   secrets: [{ key: '', value: '', id: Date.now() }],
   args: [{ key: '', value: '', id: Date.now() }],
   secretsURL: '',
 });
 const secretsLocationList = ref([{ label: 'Remote', value: 'Remote' }, { label: 'Inline', value: 'Inline' }]);
+
+const props = defineProps({
+  sceretsData: Object,
+})
 
 const emit = defineEmits(["submitSecretsForm"]);
 
@@ -96,6 +106,18 @@ const submitForm = () => {
       console.log('error', error);
     });
 }
+
+watch(() => props.sceretsData,
+  (val) => {
+    if (val) {
+      Object.assign(secretsForm, val)
+      // functionValue.value = val;
+    }
+  }, {
+  deep: true,
+  immediate: true
+})
+
 
 defineExpose({ submitForm });
 </script>

@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import { RegistryApi } from "@/api/registryApi";
 import { EIP1193Provider } from "@web3-onboard/core";
 import { LinkTokenApi } from "@/api/linkTokenApi";
+import { ConsumerApi } from "@/api/consumerApi";
 import { ChainLinkDBApi, ConsumerTemplate } from "@/db/chainlinkDB";
 import { ref, ShallowRef, shallowRef } from "vue";
 import { abis, consumer_bytecode } from "@/api/contractConfig";
@@ -42,6 +43,7 @@ export const useChainlinkDB = defineStore("chainlinkDB", () => {
 export const useContractApi = defineStore("contractApi", () => {
   const registryApi: ShallowRef<RegistryApi | undefined> = shallowRef();
   const linkTokenApi: ShallowRef<LinkTokenApi | undefined> = shallowRef();
+  const consumerApi: ShallowRef<ConsumerApi | undefined> = shallowRef();
   const provider = shallowRef();
   const networkId = ref();
   const walletAddress = ref();
@@ -51,14 +53,16 @@ export const useContractApi = defineStore("contractApi", () => {
     provider.value = web3Provider;
     networkId.value = network;
     walletAddress.value = address.toLowerCase();
-    registryApi.value = new RegistryApi(web3Provider, network)
+    registryApi.value = new RegistryApi(web3Provider, network);
     linkTokenApi.value = new LinkTokenApi(web3Provider, network);
+    consumerApi.value = new ConsumerApi(web3Provider, network);
     apiStatus.value = true;
   };
 
   return {
     registryApi,
     linkTokenApi,
+    consumerApi,
     provider,
     networkId,
     walletAddress,

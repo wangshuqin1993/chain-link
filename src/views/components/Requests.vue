@@ -147,6 +147,10 @@ interface Sights {
   id: number;
 };
 
+const props = defineProps({
+  requsetData: Array,
+})
+
 const emit = defineEmits(["submitRequestForm"])
 
 const removeHeader = (item: Sights) => {
@@ -172,7 +176,7 @@ const submitForm = () => {
       requestsList.value.push({ id: Date.now(), formData: addRequestsForm });
       localStorage.setItem('requestsListData', JSON.stringify(requestsList.value));
       console.log(requestsList.value, 'values', addRequestsForm);
-      emit('submitRequestForm', addRequestsForm)
+      emit('submitRequestForm', requestsList.value)
     })
     .catch(error => {
       console.log('error', error);
@@ -180,16 +184,22 @@ const submitForm = () => {
 };
 
 const viewAll = (id: number) => {
-  const data = JSON.parse(localStorage.getItem('requestsList.valueData'));
-  if (data) {
-    data.map((item: any) => {
-      if (item.id === id) {
-        Object.assign(addRequestsForm, item.formData);
-      }
-    })
-  } else {
-    Object.assign(addRequestsForm, {});
-  }
+  // const data = JSON.parse(localStorage.getItem('requestsList.valueData'));
+  // if (data) {
+  //   data.map((item: any) => {
+  //     if (item.id === id) {
+  //       Object.assign(addRequestsForm, item.formData);
+  //     }
+  //   })
+  // } else {
+  //   Object.assign(addRequestsForm, {});
+  // }
+
+  requestsList.value.map((item: any) => {
+    if (item.id === id) {
+      Object.assign(addRequestsForm, item.formData);
+    }
+  })
   addRequestsVisible.value = true;
 }
 
@@ -199,7 +209,7 @@ const deleteRequest = (item: any) => {
     requestsList.value.splice(index, 1);
   }
   localStorage.setItem('requestsListData', JSON.stringify(requestsList.value));
-  emit('submitRequestForm', addRequestsForm)
+  emit('submitRequestForm', requestsList.value)
   // console.log(requestsList.value, 'requestsList.value')
 }
 
@@ -211,6 +221,17 @@ const addRequest = () => {
 const resetForm = () => {
   formRef.value.resetFields();
 };
+
+watch(() => props.requsetData,
+  (val) => {
+    if (val) {
+      requestsList.value = val;
+      emit('submitRequestForm', requestsList.value)
+    }
+  }, {
+  deep: true,
+  immediate: true
+})
 
 </script>
 

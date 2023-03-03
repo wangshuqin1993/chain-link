@@ -1,6 +1,12 @@
 <template>
-  <Header></Header>
-  <router-view />
+  <a-layout>
+    <a-layout-header>
+      <Header></Header>
+    </a-layout-header>
+    <a-layout-content>
+      <router-view />
+    </a-layout-content>
+  </a-layout>
 </template>
 <script lang="ts" setup>
 import Header from './components/Header.vue';
