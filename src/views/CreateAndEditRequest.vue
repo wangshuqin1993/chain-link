@@ -59,8 +59,8 @@ import Returns from "./components/Returns.vue";
 import Secrets from "./components/Secrets.vue";
 import type { FormInstance } from 'ant-design-vue';
 import dayjs from 'dayjs';
-import { SubscriptionDBApi } from "@/db/subscription";
-const subscriptionDBApi = new SubscriptionDBApi();
+import { ChainLinkDBApi } from "@/db/chainlinkDB"
+const chainLinkDBApi = new ChainLinkDBApi();
 
 const { params } = useRoute();
 const router = useRouter();
@@ -146,7 +146,7 @@ const createFunction = async () => {
 
   // console.log(source, returnsValue.value, '000')
 
-  // subscriptionDBApi.addRequest(data).then(res => {
+  // chainLinkDBApi.addRequest(data).then(res => {
   //   console.log(res, '999')
   // })
 }
@@ -157,7 +157,7 @@ const backPage = () => {
 }
 
 onMounted(() => {
-  subscriptionDBApi.open()
+  chainLinkDBApi.open()
   setRequestFunction()
   title.value = params.type === '1' ? 'Create' : 'Edit';
 })

@@ -6,8 +6,11 @@ import { useOnboard } from '@web3-onboard/vue'
 import { useWalletAddress } from "@/stores/useWalletAddress";
 import walletTitle from '../assets/icons/logo-white.svg';
 import { RegistryApi } from "@/api/registryApi";
+import { useChainlinkDB, useContractApi } from '@/stores/useStore';
 
 const walletAddress = useWalletAddress()
+const chainlinkDB = useChainlinkDB()
+const contractApi = useContractApi()
 
 const { connectingWallet, connectedWallet, connectWallet, disconnectWallet } = useOnboard()
 const emit = defineEmits(["setWalletBtn"]);
@@ -135,6 +138,21 @@ const onClickConnect = async () => {
     setWalletAccount(walletStates[0]);
   }
 }
+
+watch(() => connectedWallet.value, (newVal, oldVal) => {
+  if (newVal && newVal !== oldVal) {
+    const provider = newVal.provider;
+    const network = newVal.chains[0].id;
+    const address = newVal.accounts[0].address;
+    if (chainlinkDB.apiStatus) {
+      chainlinkDB.switchNetwork(network);
+    } else {
+      chainlinkDB.initContractApi(network);
+    }
+    contractApi.initContractApi(provider, network, address);
+  }
+}, { deep: true, immediate: true });
+
 
 const setWalletAccount = async (walletState: { accounts: any; }) => {
   if (walletState) {

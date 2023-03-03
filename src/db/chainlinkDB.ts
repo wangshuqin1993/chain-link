@@ -40,6 +40,19 @@ interface RequestStoreValue {
   id: number,
 }
 
+interface ConsumerTemplate {
+  id: number,
+  source: string,
+  abi: string,
+  bytecode: string
+}
+
+interface ConsumerTemplateValue {
+  key: number,
+  value: ConsumerTemplate,
+}
+
+
 interface MyDB extends DBSchema {
   subscription_0x7a69: {
     key: number;
@@ -64,11 +77,15 @@ interface MyDB extends DBSchema {
   request: {
     key: number;
     value: Requset;
-    indexes: {id: number}
+    indexes: { id: number }
+  };
+  consumerTemplate: {
+    key: number
+    value: ConsumerTemplate;
   }
 }
 
-export class SubscriptionDBApi {
+export class ChainLinkDBApi {
   private readonly dbName: string = 'chain-link';
   private readonly dbVersion: number = 1;
   private db: any;
@@ -87,6 +104,7 @@ export class SubscriptionDBApi {
         store3.createIndex('owner', 'owner');
         const store4 = db.createObjectStore('request', { keyPath: 'key' });
         store4.createIndex('id', 'id');
+        db.createObjectStore('consumerTemplate', { keyPath: 'key' })
       },
     });
   }
@@ -111,7 +129,7 @@ export class SubscriptionDBApi {
     return undefined;
   }
 
-  public async updateSubscriptionConsumers(id: number, consumers: string[]): Promise<Subscription | undefined> {
+  public async addSubscriptionConsumers(id: number, consumers: string[]): Promise<Subscription | undefined> {
     const value: SubscriptionStoreValue | undefined = await this.db.get(this.storeName, id);
     if (value) {
       const addConsumer: Consumer[] = [];
@@ -124,6 +142,25 @@ export class SubscriptionDBApi {
         }
       });
       value.value.consumers = value.value.consumers.concat(addConsumer);
+      await this.db.put(this.storeName, value);
+      return value.value;
+    }
+    return undefined;
+  }
+
+  public async removeSubscriptionConsumers(id: number, consumers: string[]): Promise<Subscription | undefined> {
+    const value: SubscriptionStoreValue | undefined = await this.db.get(this.storeName, id);
+    if (value) {
+      const addConsumer: Consumer[] = [];
+      value.value.consumers.forEach((c) => {
+        if (consumers.includes(c.address)) {
+          addConsumer.push({
+            address: c.address,
+            addTime: c.addTime
+          })
+        }
+      })
+      value.value.consumers = addConsumer;
       await this.db.put(this.storeName, value);
       return value.value;
     }
@@ -154,8 +191,8 @@ export class SubscriptionDBApi {
     await this.db.delete(this.storeName, id);
   }
 
-  public async addRequest(request: Requset):Promise<void>{
-    const value: RequestStoreValue = {key: request.id, value: request, id: request.id};
+  public async addRequest(request: Requset): Promise<void> {
+    const value: RequestStoreValue = { key: request.id, value: request, id: request.id };
     await this.db.put('request', value);
   }
 
@@ -163,6 +200,21 @@ export class SubscriptionDBApi {
     const values: RequestStoreValue[] = await this.db.getAll('request');
     return values.map((value) => value.value);
   }
-  
+
+  public async addConsumerTemplate(consumerTemplate: ConsumerTemplate): Promise<void> {
+    const value: ConsumerTemplateValue | undefined = await this.db.get('consumerTemplate', consumerTemplate.id);
+    if (value) {
+      value.value = consumerTemplate;
+      await this.db.put('consumerTemplate', value);
+    } else {
+      const createValue: ConsumerTemplateValue = { key: consumerTemplate.id, value: consumerTemplate };
+      await this.db.put('consumerTemplate', createValue);
+    }
+  }
+
+  public async getAllConsumerTemplate(): Promise<ConsumerTemplate[]> {
+    const values: ConsumerTemplateValue[] = await this.db.getAll('consumerTemplate');
+    return values.map((value) => value.value);
+  }
 
 }

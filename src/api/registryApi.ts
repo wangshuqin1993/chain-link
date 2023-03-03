@@ -3,7 +3,6 @@ import { ethers } from 'ethers';
 import { createContractApi } from './contractApi'
 import { networkConfig, abis } from './contractConfig';
 
-
 export class RegistryApi {
   private contractApi;
   public contract;
@@ -25,6 +24,10 @@ export class RegistryApi {
     return networkConfig[network].functionsBillingRegistryProxy;
   }
 
+  public parseLog(log: { topics: Array<string>, data: string }) {
+    return this.contract.interface.parseLog(log);
+  }
+
   async createSubscription(): Promise<any> {
     return await this.contractApi.sendTransaction('createSubscription', {
       gasLimit: 1000000,
@@ -43,6 +46,12 @@ export class RegistryApi {
 
   async getSubscription(subscriptionId: number): Promise<any> {
     return await this.contractApi.query('getSubscription', subscriptionId);
+  }
+
+  async removeConsumer(subscriptionId: number, consumer: string): Promise<any> {
+    return this.contractApi.sendTransaction('removeConsumer', subscriptionId, consumer, {
+      gasLimit: 1000000,
+    });
   }
 
 }

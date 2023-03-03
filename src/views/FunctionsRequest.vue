@@ -8,9 +8,9 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import { SubscriptionDBApi } from "@/db/subscription";
+import { ChainLinkDBApi } from "@/db/chainlinkDB"
 const router = useRouter();
-const subscriptionDBApi = new SubscriptionDBApi();
+const chainLinkDBApi = new ChainLinkDBApi();
 
 const columns = [
   {
@@ -47,8 +47,8 @@ const createRequest = (val: string) => {
 }
 
 onMounted(async () => {
-  await subscriptionDBApi.open()
-  subscriptionDBApi.getAllRequests().then(res => {
+  await chainLinkDBApi.open()
+  chainLinkDBApi.getAllRequests().then(res => {
     console.log(res, 'getValue')
   })
 })

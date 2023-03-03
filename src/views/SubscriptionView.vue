@@ -25,14 +25,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, Ref } from "vue";
+import { ref, Ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import Wallets from "../components/Wallets.vue";
-import { RegistryApi } from "@/api/registryApi";
-import { useOnboard } from '@web3-onboard/vue'
-import { ethers } from "ethers";
 import dayjs from 'dayjs';
-import { SubscriptionDBApi, Subscription } from "@/db/subscription";
+import { Subscription } from "@/db/chainlinkDB";
+import { useChainlinkDB, useContractApi } from "@/stores/useStore";
+const chainlinkDB = useChainlinkDB()
+const contractApi = useContractApi()
+
 const router = useRouter();
 const showWallets = ref();
 const activeKey = ref('1');
@@ -64,60 +65,51 @@ const columns = [
     key: 'balance',
   },
 ];
-const subscriptionDBApi = new SubscriptionDBApi();
-//get subcription data
-subscriptionDBApi.open()
+
 
 const searchSubscriptionByOwner = (owner: string) => {
-  subscriptionDBApi.searchSubscriptionByOwner(owner).then(data => {
+  console.log("owner", owner)
+  chainlinkDB.apiStatus && chainlinkDB.chainLinkDBApi.searchSubscriptionByOwner(owner).then(data => {
     subscriptionList.value = data;
     console.log(data, 'data')
   })
 }
-const account = useOnboard().connectedWallet.value?.accounts[0].address;
-if (account) {
-  searchSubscriptionByOwner(account);
-}
 
-
-
-let registry: RegistryApi;
-const createSubscription = () => {
-  const isWalletAccount = window.localStorage.getItem("alreadyConnectedWallets");
-  if (isWalletAccount == null || isWalletAccount === '[]') {
-    showWallets.value?.onClickConnect();
-  } else {
-    const provider = useOnboard().connectedWallet.value?.provider;
-    const network = useOnboard().connectedWallet.value?.chains[0].id;
-    if (provider && network) {
-      registry = new RegistryApi(provider, network);
-      registry.createSubscription().then(receipt => {
-        // console.log("receipt:", receipt);
-        const contract = registry.contract;
-        const events = contract.interface.parseLog(receipt.logs[0]);
-        currentsubscriptionId.value = events.args[0].toNumber();
-        const subscription: Subscription = {
-          id: events.args[0].toNumber(),
-          createdTime: dayjs().format('YYYY-MM-DD HH:mm:ss'),
-          consumers: [],
-          balance: '0',
-          consumerCount: 0,
-          owner: receipt.from
-        };
-        subscriptionDBApi.addSubscription(subscription);
-        searchSubscriptionByOwner(receipt.from);
-      });
-
-
-      // registry.getSubscription(currentsubscriptionId.value).then(t => {
-      //   const data = { id: currentsubscriptionId.value, createdTime: dayjs().format('YYYY-MM-DD HH:mm:ss') };
-      //   Object.assign(data, t)
-      //   console.log("detail", data, t);
-      //   subscriptionList.value.push(data);
-      //   subscriptionData[currentsubscriptionId.value] = data;
-      //   localStorage.setItem('subscriptionData', JSON.stringify(subscriptionData));
-      // })
+watch([() => chainlinkDB.networkId, () => chainlinkDB.apiStatus, () => contractApi.walletAddress],
+  (newValues, oldValues) => {
+    if (newValues[0] && newValues[1] && newValues[2]
+      && (newValues[0] != oldValues[0]
+        || newValues[2] != oldValues[2]
+        || newValues[1] != oldValues[1])
+    ) {
+      console.log(newValues[2])
+      searchSubscriptionByOwner(newValues[2])
     }
+  }, {
+  deep: true, // 监视对象内部属性的变化
+  immediate: true
+});
+
+
+const createSubscription = () => {
+  if (contractApi.apiStatus) {
+    contractApi.registryApi?.createSubscription().then(receipt => {
+      //console.log("receipt:", receipt);
+      const events = contractApi.registryApi?.contract.interface.parseLog(receipt.logs[0]);
+      currentsubscriptionId.value = events.args[0].toNumber();
+      const subscription: Subscription = {
+        id: events.args[0].toNumber(),
+        createdTime: dayjs().format('YYYY-MM-DD HH:mm:ss'),
+        consumers: [],
+        balance: '0',
+        consumerCount: 0,
+        owner: receipt.from.toLowerCase()
+      };
+      chainlinkDB.apiStatus && chainlinkDB.chainLinkDBApi.addSubscription(subscription);
+      searchSubscriptionByOwner(receipt.from.toLowerCase());
+    });
+  } else {
+    showWallets.value?.onClickConnect();
   }
 }
 
