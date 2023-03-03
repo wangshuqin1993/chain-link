@@ -4,6 +4,7 @@ import FunctionsRequest from '@/views/FunctionsRequest.vue';
 import FunctionsConsumer from '@/views/FunctionsConsumer.vue';
 import SubscriptionDetail from '../views/SubscriptionDetail.vue';
 import CreateAndEditRequest from '../views/CreateAndEditRequest.vue';
+import ConsumerDetail from "../views/ConsumerDetail.vue";
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -20,6 +21,11 @@ const routes: Array<RouteRecordRaw> = [
     path: '/functions-consumer',
     name: 'FunctionsConsumer',
     component: FunctionsConsumer
+  },
+  {
+    path: '/consumer-detail/:id',
+    name: 'ConsumerDetail',
+    component: ConsumerDetail
   },
   {
     path: '/functions-request',

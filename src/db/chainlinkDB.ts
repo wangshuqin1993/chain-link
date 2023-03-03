@@ -300,11 +300,8 @@ export class ChainLinkDBApi {
 
   public async updateRequest(requset: Requset): Promise<Requset | undefined> {
     const value: RequestStoreValue | undefined = await this.db.get('request',requset.id);
-    console.log("request", requset.id, value);
     if (value) {
-      console.log(value,'value1111111111111')
-      value.value = requset
-      console.log(value,'value222222222222')
+      value.value =  JSON.parse(JSON.stringify(requset));
       await this.db.put('request', value);
       return value.value;
     }
@@ -340,6 +337,7 @@ export class ChainLinkDBApi {
     }
     return undefined;
   }
+  
   //查询合约列表
   public async searchConsumerContractByOwnerAndNetwork(owner: string, network: string): Promise<ConsumerContract[]> {
     const objectStore = this.db.transaction("consumerContract").objectStore("consumerContract");

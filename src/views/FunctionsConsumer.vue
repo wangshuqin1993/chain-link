@@ -1,16 +1,25 @@
 <template>
   <div class="functions-consumer-view">
-    <a-button class="create-btn" @click="visible = true">Create FunctionsConsumer</a-button>
-    <a-table :columns="columns" :dataSource="dataSource" :pagination="false">
+    <a-button class="create-btn" @click="createConsumer">Create FunctionsConsumer</a-button>
+    <a-table :columns="columns" :dataSource="consumerList" :pagination="false">
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'action'">
-          <a @click="sendRequest(record)">Send Request</a>
+          <a @click="detailConsumer(record)">Detail</a>
         </template>
       </template>
     </a-table>
   </div>
   <a-modal v-model:visible="visible" title="Create FunctionsConsumer" :footer="null" @ok="handleOk">
-    <p>Some contents...</p>
+    <div>
+      <a-form :modal="deployModal">
+        <a-form-item label="id">
+          <a-input v-model:value="deployModal.id" disabled></a-input>
+        </a-form-item>
+        <a-form-item label="address">
+          <a-input v-model:value="deployModal.address" disabled></a-input>
+        </a-form-item>
+      </a-form>
+    </div>
     <div class="modal-btn">
       <a-button @click='visible = false'>Cancel</a-button>
       <a-button @click="deployBtn" :loading="loading">Deploy</a-button>
@@ -21,7 +30,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, onMounted, reactive, watch } from "vue";
 import { message } from "ant-design-vue";
 import Wallets from "../components/Wallets.vue";
 import * as ethers from "ethers";
@@ -30,34 +39,41 @@ import { useChainlinkDB, useContractApi } from "@/stores/useStore";
 import { networkConfig } from "@/api/contractConfig";
 import { ConsumerContract } from "@/db/chainlinkDB";
 import dayjs from "dayjs";
+import router from "@/router";
 const { connectedWallet } = useOnboard();
+const deployModal = reactive({
+  id: '1',
+  address: 'h'
+})
 
 const chainlinkDB = useChainlinkDB()
 const contractApi = useContractApi()
 
 
-const dataSource = ref([{ contractAddress: '1234567dfghu', createdTime: '2023-02-28', id: 2343 }]);
+// const dataSource = ref([{ contractAddress: '1234567dfghu', createdTime: '2023-02-28', id: 2343 }]);
+const consumerList = ref([]);
 const visible = ref(false);
 const loading = ref(false);
 const showWallets = ref();
 const columns = [
   {
     title: 'Contract Address',
-    dataIndex: 'contractAddress',
+    dataIndex: 'address',
     align: "center",
-    key: 'contractAddress',
+    key: 'address',
+    customRender: ({ text }) => {
+      if (text) {
+        return text.substring(0, 5) + "..." + text.substring(text.length - 4)
+      } else {
+        return '-'
+      }
+    }
   },
   {
     title: 'Created',
-    dataIndex: 'createdTime',
+    dataIndex: 'createTime',
     align: "center",
-    key: 'createdTime',
-  },
-  {
-    title: 'SubscritionID',
-    dataIndex: 'id',
-    align: "center",
-    key: 'id',
+    key: 'createTime',
   },
   {
     title: 'Action',
@@ -74,11 +90,20 @@ const sendRequest = (val: any) => {
   }
 }
 
+const createConsumer = () => {
+  visible.value = true;
+  getAllTemplateList();
+}
+
+const detailConsumer = (val: any) => {
+  router.push(`/consumer-detail/${val.id}`)
+}
+
 const deployBtn = async () => {
   console.log("start")
   if (contractApi.apiStatus && chainlinkDB.apiStatus) {
     let res = await chainlinkDB.chainLinkDBApi.getAllConsumerTemplate();
-    console.log("provider", contractApi.provider)
+    console.log(res, "provider", contractApi.provider)
     const rpcProvider = new ethers.providers.Web3Provider(contractApi.provider);
     const factory = new ethers.ContractFactory(
       res[0].abi,
@@ -103,6 +128,7 @@ const deployBtn = async () => {
       await chainlinkDB.chainLinkDBApi.addConsumerContract(consumerContract)
       const list = await chainlinkDB.chainLinkDBApi.searchConsumerContractByOwnerAndNetwork(contractApi.walletAddress, contractApi.networkId);
       console.log(list);
+      consumerList.value = list;
     } catch (err: any) {
       console.log("err", err)
       message.error(err)
@@ -111,6 +137,36 @@ const deployBtn = async () => {
     }
   }
 }
+
+const getAllTemplateList = async () => {
+  console.log('iiiii')
+  let res = await chainlinkDB.chainLinkDBApi.getAllConsumerTemplate();
+  console.log(res, 'getAllConsumerTemplate')
+}
+
+const getConsumerList = () => {
+  if (contractApi.apiStatus && chainlinkDB.apiStatus) {
+    chainlinkDB.chainLinkDBApi.searchConsumerContractByOwnerAndNetwork(contractApi.walletAddress, contractApi.networkId).then(res => {
+      consumerList.value = res;
+    });
+  }
+}
+
+onMounted(() => {
+})
+
+watch([() => chainlinkDB.networkId, () => chainlinkDB.apiStatus],
+  (newValues, oldValues) => {
+    if (newValues[0] && newValues[1]
+      && (newValues[0] != oldValues[0]
+        || newValues[1] != oldValues[1])
+    ) {
+      getConsumerList()
+    }
+  }, {
+  deep: true, // 监视对象内部属性的变化
+  immediate: true
+});
 
 </script>
 
@@ -152,5 +208,9 @@ const deployBtn = async () => {
       border-color: #375bd2;
     }
   }
+}
+
+:deep(.ant-form-item-label>label) {
+  width: 100px;
 }
 </style>

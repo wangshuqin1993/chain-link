@@ -1,7 +1,7 @@
 <template>
   <div class="subscription-detail">
     <a-breadcrumb>
-      <a-breadcrumb-item><a href="/">Subscription</a></a-breadcrumb-item>
+      <a-breadcrumb-item><a href="javascript:;" @click="back">Subscription</a></a-breadcrumb-item>
       <a-breadcrumb-item>Subscription Detail</a-breadcrumb-item>
     </a-breadcrumb>
 
@@ -77,8 +77,9 @@ import { Consumer, Subscription } from "@/db/chainlinkDB";
 import { useChainlinkDB, useContractApi } from "@/stores/useStore";
 import { ethers } from "ethers";
 import { ref, Ref, watch } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 const { params } = useRoute();
+const router = useRouter();
 const addFundsVisible = ref(false);
 const addConsumerVisible = ref(false);
 const addConsumerAddress = ref("");
@@ -104,6 +105,13 @@ const fundsColumns = [
     dataIndex: 'owner',
     align: "center",
     key: 'owner',
+    customRender: ({ text }) => {
+      if (text) {
+        return text.substring(0, 5) + "..." + text.substring(text.length - 4)
+      } else {
+        return '-'
+      }
+    }
   },
   {
     title: 'Created',
@@ -131,6 +139,13 @@ const consumersColumns = [
     dataIndex: 'address',
     align: "center",
     key: 'address',
+    customRender: ({ text }) => {
+      if (text) {
+        return text.substring(0, 5) + "..." + text.substring(text.length - 4)
+      } else {
+        return '-'
+      }
+    }
   },
   {
     title: 'Added',
@@ -223,6 +238,10 @@ const getSubscription = (id: number) => {
       consumersList.value = data.consumers;
     }
   })
+}
+
+const back = () => {
+  router.go(-1);
 }
 
 watch([() => chainlinkDB.networkId, () => chainlinkDB.apiStatus],
@@ -361,5 +380,11 @@ watch([() => chainlinkDB.networkId, () => chainlinkDB.apiStatus],
   background-color: #ecedef !important;
   color: #858a95 !important;
   border-color: #ecedef !important;
+}
+
+.ant-breadcrumb {
+  margin-bottom: 16px;
+  font-size: 16px;
+  font-weight: 700;
 }
 </style>

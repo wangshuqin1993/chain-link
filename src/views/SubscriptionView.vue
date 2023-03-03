@@ -10,9 +10,14 @@
         <a-table :dataSource="subscriptionList" :columns="columns" :pagination="false">
           <template #bodyCell="{ column, text }">
             <template v-if="column.dataIndex === 'id'">
-              <div class="table-detail">
+              <div class="table-detail" @click="toDetail(text)">
                 <span class="point"></span>
-                <a @click="toDetail(text)">{{ text }}</a>
+                <a>{{ text }}</a>
+              </div>
+            </template>
+            <template v-if="column.dataIndex === 'balance'">
+              <div>
+                {{ text + ' Link' }}
               </div>
             </template>
           </template>

@@ -2,7 +2,7 @@
   <div class="create-edit-request">
     <div class="title">{{ title + ' Script' }}</div>
     <div class="content">Script Content</div>
-    <!-- 脚本内容 -->
+
     <!-- 定义参数名 -->
     <div class="request-box">
       <div class="request-left">
@@ -71,8 +71,6 @@ const returnFormRef = ref();
 const secretsFormRef = ref();
 const updateFormData = reactive({});
 
-// const functionData = ref('');
-
 const submitParamsForm = (val: any) => {
   val.map((item: any, key: number) => {
     if (item.value !== '') {
@@ -134,7 +132,6 @@ const createFunction = async () => {
     source: source,
     scerets: updateFormData.scerets || JSON.parse(JSON.stringify(secretsValue)),
     paramsValue: JSON.parse(JSON.stringify(paramsValue.value)),
-    // requsetValue: JSON.parse(localStorage.getItem('requestsListData')) || [], requestDBdata
     requsetValue: JSON.parse(JSON.stringify(requestDBdata.value)),
     calculation: functionValue.value,
     returnValue: JSON.parse(JSON.stringify(returnDBData)),
@@ -147,15 +144,11 @@ const createFunction = async () => {
       router.go(-1);
     })
   } else {
-    console.log(data, data)
     chainLinkDBApi.updateRequest(data).then(res => {
-      // console.log(res, '999')
       message.success('Edit Success');
       router.go(-1);
     })
   }
-
-
 }
 
 const backPage = () => {
@@ -166,7 +159,7 @@ const backPage = () => {
 const searchRequest = () => {
   let id = Number(params.id);
   chainLinkDBApi.searchRequestById(id).then(res => {
-    console.log(res, 'tttttt')
+    // console.log(res, 'tttttt')
     Object.assign(updateFormData, res)
   })
 }
@@ -178,7 +171,6 @@ onMounted(async () => {
   if (params.type === '2') {
     searchRequest();
   }
-  // setRequestFunction();
 })
 
 </script>
