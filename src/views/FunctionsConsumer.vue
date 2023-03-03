@@ -97,7 +97,7 @@ const deployBtn = async () => {
 <style scoped lang="scss">
 .functions-consumer-view {
   max-width: 1440px;
-  margin: 96px 32px 32px;
+  margin: 32px;
   text-align: left;
   border-radius: 8px;
   background-color: #ffffff;

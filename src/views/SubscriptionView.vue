@@ -131,7 +131,7 @@ const toDetail = (id: number) => {
 .subscription-view {
   text-align: left;
   max-width: 1440px;
-  margin: 96px 32px 32px;
+  margin: 32px;
   background-color: #ffffff;
   border-radius: 8px;
   padding: 24px;

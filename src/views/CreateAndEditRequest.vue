@@ -166,7 +166,7 @@ onMounted(() => {
 <style lang='scss' scoped>
 .create-edit-request {
   max-width: 1440px;
-  margin: 96px 32px 32px;
+  margin: 32px;
   text-align: left;
   background-color: #ffffff;
   border-radius: 8px;

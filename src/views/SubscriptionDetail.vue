@@ -244,7 +244,7 @@ const getSubscription = (id: number) => {
 <style scoped lang="scss">
 .subscription-detail {
   max-width: 1440px;
-  margin: 96px 32px 32px;
+  margin: 32px;
   text-align: left;
   color: #1a2b6b;
   background-color: #ffffff;
