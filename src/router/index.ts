@@ -27,7 +27,7 @@ const routes: Array<RouteRecordRaw> = [
     component: FunctionsRequest
   },
   {
-    path: '/create-request/:type',
+    path: '/create-request/:type/:id',
     name: 'CreateAndEditRequest',
     component: CreateAndEditRequest
   },
