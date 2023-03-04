@@ -100,8 +100,8 @@ interface ConsumerContractValue {
   network: string
 }
 
-interface ExecuteRequest {
-  execId: number,
+export interface ExecuteRequest {
+  execId: string,
   requestId: number,
   consumerContractId: number,
   createTime: string,
@@ -114,7 +114,7 @@ interface ExecuteRequest {
 }
 
 interface ExecuteRequestValue {
-  key: number,
+  key: string,
   value: ExecuteRequest,
   consumerContractId: number
 }
@@ -354,7 +354,7 @@ export class ChainLinkDBApi {
     await this.db.put("executeRequest", value);
   }
   //查询执行列表
-  public async searchExecuteRequestByConsumerContractId(consumerContractId: string): Promise<ExecuteRequest[]> {
+  public async searchExecuteRequestByConsumerContractId(consumerContractId: number): Promise<ExecuteRequest[]> {
     const range = IDBKeyRange.only(consumerContractId);
     const values: ExecuteRequestValue[] = await this.db.getAllFromIndex("executeRequest", 'consumerContractId', range);
     return values.map((value) => value.value);
