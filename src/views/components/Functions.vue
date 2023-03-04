@@ -13,8 +13,6 @@ const props = defineProps({
   functionData: String,
 });
 
-console.log(props.functionData, 'props')
-
 const functionValue = ref<string>('');
 
 

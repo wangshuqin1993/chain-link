@@ -50,6 +50,7 @@ const columns = [
 ]
 
 const createRequest = (val: string) => {
+  localStorage.removeItem('requestsListData');
   router.push(`/create-request/${val}/0`)
 }
 

@@ -15,34 +15,14 @@
           <span class="item-title">URL: </span>
           <span class="item-info">{{ item.formData.URL }}</span>
         </div>
-        <div class="item item-method" v-if="item.formData.Method">
+        <div class="item item-method">
           <span class="item-title">Method: </span>
           <span class="item-info">{{ item.formData.Method }}</span>
-        </div>
-        <div class="item item-method" v-if="item.formData.showHeader">
-          <span class="item-title">headers: </span>
-          <span class="item-info" v-for="val in item.formData.headers">{{ val.key + ': ' + val.value + ', ' }}</span>
-        </div>
-        <div class="item item-method" v-if="item.formData.showParams">
-          <span class="item-title">params: </span>
-          <span class="item-info" v-for="val in item.formData.params">{{ val.key + ': ' + val.value }}</span>
-        </div>
-        <div class="item item-method" v-if="item.formData.showData">
-          <span class="item-title">data: </span>
-          <span class="item-info" v-for="val in item.formData.data">{{ val.key + ': ' + val.value }}</span>
-        </div>
-        <div class="item item-url">
-          <span class="item-title">timeout: </span>
-          <span class="item-info">{{ item.formData.timeout }}</span>
-        </div>
-        <div class="item item-url">
-          <span class="item-title">responseType: </span>
-          <span class="item-info">{{ item.formData.responseType }}</span>
         </div>
       </div>
 
       <div class="view-all">
-        <span class="view" @click="viewAll(item.id)">View All</span>
+        <span class="view" @click="viewAll(item.formData.id)">View All</span>
         <span class="delete" @click="deleteRequest(item)">Delete</span>
       </div>
     </div>
@@ -55,8 +35,7 @@
       Add New Request Method
     </a-button>
   </div>
-  <a-modal v-model:visible="addRequestsVisible" title="Add New Request Method" :footer="null" width="658px"
-    @cancel="cancel">
+  <a-modal v-model:visible="addRequestsVisible" title="Add New Request Method" :footer="null" width="658px">
     <a-form ref="formRef" :model="addRequestsForm">
       <a-form-item name="requestName" label="requestName" :rules="[{ required: true, message: 'Missing requestName' }]">
         <a-input v-model:value="addRequestsForm.requestName" placeholder="please input requestName"></a-input>
@@ -99,10 +78,10 @@
         <a-form-item label="" :name="['params', index, 'value']" :rules="{
           required: false,
         }">
-          <a-input v-model:value="paramItem.value" />
+          <a-input v-model:value="paramItem.name" />
         </a-form-item>
-        <PlusCircleOutlined v-if="index == 0" @click="addParams" />
-        <MinusCircleOutlined v-if="index > 0" @click="removeParams(paramItem)" />
+        <PlusCircleOutlined v-if="index == 0" @click="addHeader" />
+        <MinusCircleOutlined v-if="index > 0" @click="removeHeader(paramItem)" />
       </a-space>
 
       <a-space v-for="(dataItem, index) in addRequestsForm.data" :key="dataItem.id"
@@ -115,8 +94,8 @@
         }">
           <a-input v-model:value="dataItem.value" />
         </a-form-item>
-        <PlusCircleOutlined v-if="index == 0" @click="addData" />
-        <MinusCircleOutlined v-if="index > 0" @click="removeData(dataItem)" />
+        <PlusCircleOutlined v-if="index == 0" @click="addHeader" />
+        <MinusCircleOutlined v-if="index > 0" @click="removeHeader(dataItem)" />
       </a-space>
 
 
@@ -146,7 +125,7 @@ const addRequestsForm = reactive({
   requestName: '',
   responseName: '',
   URL: '',
-  method: 'GET',
+  method: '',
   headers: [{ key: '', value: '', id: Date.now() }],
   params: [{ key: '', value: '', id: Date.now() }],
   data: [{ key: '', value: '', id: Date.now() }],
@@ -160,9 +139,7 @@ const methodsList = ref([
 ]);
 // const requestsList = ref(JSON.parse(localStorage.getItem('requestsListData'))) || ref([]);
 const requestsList = ref([]);
-const viewAllId = ref(0);
-
-console.log(requestsList.value, 'requestsList')
+console.log(requestsList.value)
 
 interface Sights {
   value: string;
@@ -176,68 +153,76 @@ const props = defineProps({
 
 const emit = defineEmits(["submitRequestForm"])
 
+const removeHeader = (item: Sights) => {
+  let index = addRequestsForm.headers.indexOf(item);
+  if (index !== -1) {
+    addRequestsForm.headers.splice(index, 1);
+  }
+};
+const addHeader = () => {
+  addRequestsForm.headers.push({
+    key: undefined,
+    value: undefined,
+    id: Date.now()
+  });
+};
+
+
 const submitForm = () => {
   formRef.value
     .validate()
     .then(() => {
-      addRequestsForm.showHeader = addRequestsForm.headers.some((val: any) => { return val.value && val.value !== '' });
-      addRequestsForm.showParams = addRequestsForm.params.some((val: any) => { return val.value && val.value !== '' });
-      addRequestsForm.showData = addRequestsForm.data.some((val: any) => { return val.value && val.value !== '' });
       addRequestsVisible.value = false;
-      requestsList.value = JSON.parse(localStorage.getItem('requestsListData')) || [];
-      if (requestsList.value && requestsList.value.length > 0) {
-        const result = requestsList.value.find((val: any) => { return val.id === viewAllId.value })
-        if (result) {
-          // console.log('修改')
-          // console.log(addRequestsForm, 'addRequestsForm')
-          requestsList.value.map((item: any) => {
-            if (item.id === viewAllId.value) {
-              Object.assign(item.formData, addRequestsForm)
-            }
-          })
-          localStorage.setItem('requestsListData', JSON.stringify(requestsList.value));
-        } else {
-          // console.log('新增');
-          requestsList.value.push({ id: Date.now(), formData: addRequestsForm })
-        }
+      const data = JSON.parse(localStorage.getItem('requestsListData'));
+      console.log(addRequestsForm, 'addRequestsForm')
+      debugger
+      if (data && data.length > 0) {
+        data.map((val: any, index: number) => {
+          if (addRequestsForm.id) {
+            console.log('jjj')
+            // localStorage.setItem('requestsListData', JSON.stringify(requestsList.value));
+            // Object(val, addRequestsForm)
+            // requestsList.value[index] = addRequestsForm;
+          } else {
+            addRequestsForm.id = Date.now();
+            requestsList.value.push({ formData: addRequestsForm });
+          }
+        })
       } else {
-        requestsList.value.push({ id: Date.now(), formData: addRequestsForm })
+        addRequestsForm.id = Date.now();
+        requestsList.value.push({ formData: addRequestsForm });
       }
-      localStorage.setItem('requestsListData', JSON.stringify(requestsList.value));
-      emit('submitRequestForm', requestsList.value);
 
+      // requestsList.value.push({ formData: addRequestsForm });
+      localStorage.setItem('requestsListData', JSON.stringify(requestsList.value));
+      // console.log(requestsList.value, 'values', addRequestsForm);
+      emit('submitRequestForm', requestsList.value)
     })
-}
+    .catch(error => {
+      console.log('error', error);
+    });
+};
+
 
 
 const viewAll = (id: number) => {
-  viewAllId.value = id;
-  requestsList.value = JSON.parse(localStorage.getItem('requestsListData'));
   const data = JSON.parse(localStorage.getItem('requestsListData'));
   if (data) {
     data.map((item: any) => {
-      if (item.id === id) {
+      if (item.formData.id === id) {
         Object.assign(addRequestsForm, item.formData);
       }
     })
   } else {
     Object.assign(addRequestsForm, {});
   }
+
+  // requestsList.value.map((item: any) => {
+  //   if (item.id === id) {
+  //     Object.assign(addRequestsForm, item.formData);
+  //   }
+  // })
   addRequestsVisible.value = true;
-}
-
-const resetForm = () => {
-  formRef.value.resetFields();
-};
-
-const cancel = () => {
-  viewAllId.value = 0
-}
-
-const addRequest = () => {
-  addRequestsVisible.value = true;
-  formRef.value.resetFields();
-
 }
 
 const deleteRequest = (item: any) => {
@@ -247,58 +232,25 @@ const deleteRequest = (item: any) => {
   }
   localStorage.setItem('requestsListData', JSON.stringify(requestsList.value));
   emit('submitRequestForm', requestsList.value)
+  // console.log(requestsList.value, 'requestsList.value')
 }
 
-const removeHeader = (item: Sights) => {
-  let index = addRequestsForm.headers.indexOf(item);
-  if (index !== -1) {
-    addRequestsForm.headers.splice(index, 1);
-  }
-};
+const addRequest = () => {
+  addRequestsVisible.value = true;
+  addRequestsForm.id = undefined;
+  console.log(addRequestsForm, 'addRequestsFormeeeeeeeeeeeeeeeeeee')
+  formRef.value.resetFields();
 
-const addHeader = () => {
-  addRequestsForm.headers.push({
-    key: undefined,
-    value: undefined,
-    id: Date.now()
-  });
-};
-
-const removeParams = (item: Sights) => {
-  let index = addRequestsForm.params.indexOf(item);
-  if (index !== -1) {
-    addRequestsForm.params.splice(index, 1);
-  }
-};
-
-const addParams = () => {
-  addRequestsForm.params.push({
-    key: undefined,
-    value: undefined,
-    id: Date.now()
-  });
 }
 
-const removeData = (item: Sights) => {
-  let index = addRequestsForm.data.indexOf(item);
-  if (index !== -1) {
-    addRequestsForm.data.splice(index, 1);
-  }
+const resetForm = () => {
+  formRef.value.resetFields();
 };
-
-const addData = () => {
-  addRequestsForm.data.push({
-    key: undefined,
-    value: undefined,
-    id: Date.now()
-  });
-}
 
 watch(() => props.requsetData,
   (val) => {
     if (val) {
       requestsList.value = val;
-      localStorage.setItem('requestsListData', JSON.stringify(requestsList.value));
       emit('submitRequestForm', requestsList.value)
     }
   }, {
