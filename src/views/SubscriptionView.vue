@@ -73,10 +73,10 @@ const columns = [
 
 
 const searchSubscriptionByOwner = (owner: string) => {
-  console.log("owner", owner)
+  // console.log("owner", owner)
   chainlinkDB.apiStatus && chainlinkDB.chainLinkDBApi.searchSubscriptionByOwner(owner).then(data => {
     subscriptionList.value = data;
-    console.log(data, 'data')
+    // console.log(data, 'data')
   })
 }
 

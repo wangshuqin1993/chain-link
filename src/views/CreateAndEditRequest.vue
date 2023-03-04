@@ -1,6 +1,6 @@
 <template>
   <div class="create-edit-request">
-    <div class="title">{{ title + ' Script' }}</div>
+    <div class="title">{{ title + ' Request' }}</div>
 
 
     <div class="param-left">
@@ -12,14 +12,14 @@
     </div>
 
 
-    <div class="content">Script Config</div>
+    <div class="content">Request Config</div>
     <div class="param-left">
       <RequestConfig @submitRequestConfigForm="submitRequestConfigForm" ref="requestConfigFormRef"
         :requestConfigData="updateFormData.requestConfig">
       </RequestConfig>
     </div>
 
-    <div class="content">Script Content</div>
+    <div class="content">Request Content</div>
 
     <!-- 定义参数名 -->
     <div class="request-box">
@@ -99,14 +99,14 @@ const submitRequestForm = (val: any) => {
 }
 
 const setRequestFunction = (data: any) => {
-  // requestValue.value = [];
-  Object.assign(requestValue.value, []);
+  console.log(data, 'data')
+  requestValue.value = [];
   data.map((item: any) => {
     let str = '';
     str += `
 cosnt ${item.formData.requestName} = Functions.makeHttpRequest({
-  url: '${item.formData.URL}',
-  method: '${item.formData.method}',
+  url: ${item.formData.URL},
+  method: ${item.formData.method},
 })
 const [${item.formData.responseName}] = await Promise.all([${item.formData.requestName}])
     `
@@ -281,6 +281,7 @@ onMounted(async () => {
   .request-left,
   .request-right {
     flex: 1;
+    max-width: 50%;
   }
 }
 </style>

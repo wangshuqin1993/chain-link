@@ -21,8 +21,7 @@ const functionValue = ref<string>('');
 const emit = defineEmits(["getFunctionData"]);
 
 const getFunctionData = (val: any) => {
-
-  console.log(functionValue.value, 'val')
+  // console.log(functionValue.value, 'val')
   emit('getFunctionData', functionValue.value)
 }
 

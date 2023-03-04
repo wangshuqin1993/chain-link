@@ -105,13 +105,6 @@ const fundsColumns = [
     dataIndex: 'owner',
     align: "center",
     key: 'owner',
-    // customRender: ({ text }) => {
-    //   if (text) {
-    //     return text.substring(0, 5) + "..." + text.substring(text.length - 4)
-    //   } else {
-    //     return '-'
-    //   }
-    // }
   },
   {
     title: 'Created',
@@ -139,13 +132,6 @@ const consumersColumns = [
     dataIndex: 'address',
     align: "center",
     key: 'address',
-    // customRender: ({ text }) => {
-    //   if (text) {
-    //     return text.substring(0, 5) + "..." + text.substring(text.length - 4)
-    //   } else {
-    //     return '-'
-    //   }
-    // }
   },
   {
     title: 'Added',
@@ -364,12 +350,14 @@ watch([() => chainlinkDB.networkId, () => chainlinkDB.apiStatus],
 
 .confirm-btn {
   margin: 0 12px;
-}
-
-.cancel-btn {
   color: #375bd2;
   border-color: #375bd2;
 }
+
+// .cancel-btn {
+//   color: #375bd2;
+//   border-color: #375bd2;
+// }
 
 .ant-input {
   height: 42px;

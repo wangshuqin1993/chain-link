@@ -7,12 +7,12 @@
 
       <a-space v-for="(secretItem, index) in requestConfigForm.secrets" :key="secretItem.id"
         style="display: flex; margin-bottom: 8px" align="baseline" v-if="requestConfigForm.secretsLocation === '0'">
-        <a-form-item :name="['secrets', index, 'key']" :label="index === 0 ? 'secrets' : ' '" :rules="{ required: true }"
+        <a-form-item :name="['secrets', index, 'key']" :label="index === 0 ? 'secrets' : ' '" :rules="{ required: false }"
           :colon="index === 0 ? true : false">
           <a-input v-model:value="secretItem.key" @blur="submitForm" />
         </a-form-item>
         <a-form-item label="" :name="['secrets', index, 'value']" :rules="{
-          required: true,
+          required: false,
         }">
           <a-input v-model:value="secretItem.value" @blur="submitForm" />
         </a-form-item>
@@ -21,8 +21,8 @@
       </a-space>
 
 
-      <a-form-item name="secretsURL" label="secretsURL" v-if="requestConfigForm.secretsLocation === 'Remote'"
-        :rules="{ required: true }">
+      <a-form-item name="secretsURL" label="secretsURL" v-if="requestConfigForm.secretsLocation === '1'"
+        :rules="{ required: false }">
         <a-input v-model:value="requestConfigForm.secretsURL" placeholder="please input secretsURL"
           @blur="submitForm"></a-input>
       </a-form-item>
@@ -94,8 +94,7 @@ const submitForm = () => {
   formRef.value
     .validate()
     .then(() => {
-      // console.log(addReturnForm, '99')
-      console.log("requestConfig123", requestConfigForm)
+      // console.log("requestConfig123", requestConfigForm)
       emit('submitRequestConfigForm', requestConfigForm)
     })
     .catch(error => {
@@ -107,7 +106,6 @@ watch(() => props.requestConfigData,
   (val) => {
     if (val) {
       Object.assign(requestConfigForm, val)
-      // functionValue.value = val;
     }
   }, {
   deep: true,

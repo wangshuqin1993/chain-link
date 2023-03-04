@@ -2,7 +2,7 @@
   <div class="title">Define Request Method</div>
   <div class="requests-list" v-if="requestsList.length > 0">
     <div v-for="item in requestsList" :key="item.id" class="list-item">
-      <div class="item-info">
+      <div class="item-info-box">
         <div class="item item-requestName">
           <span class="item-title">requestName: </span>
           <span class="item-info">{{ item.formData.requestName }}</span>
@@ -252,6 +252,10 @@ watch(() => props.requsetData,
     display: flex;
     justify-content: space-between;
 
+    .item-info-box {
+      max-width: 80%;
+    }
+
     .item {
       display: flex;
 
@@ -260,10 +264,11 @@ watch(() => props.requsetData,
       }
 
       .item-title {
-        width: 142px;
+        min-width: 142px;
       }
 
       .item-info {
+        display: inline-block;
         max-width: 100%;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -273,6 +278,8 @@ watch(() => props.requsetData,
 
     .view-all {
       font-size: 14px;
+      color: #5d80de;
+      min-width: 102px;
 
       .view,
       .delete {

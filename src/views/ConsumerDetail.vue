@@ -24,20 +24,57 @@
 
   <a-modal v-model:visible="visible" title="Send Request" :footer="null">
     <a-form :model="requestModal" ref="formRef">
-      <a-form-item label="subscriptionId" :rules="{ required: false }">
+      <a-form-item label="subscriptionId" :rules="{ required: true }">
         <a-select v-model:value="requestModal.subscriptionId" :options="subscriptionsList" />
       </a-form-item>
-      <a-form-item label="requestId" :rules="{ required: false }">
-        <a-select v-model:value="requestModal.requestId" :options="requestList" />
+
+      <a-form-item label="requestId" :rules="{ required: true }">
+        <a-select v-model:value="requestModal.requestId" :options="requestList" @change="changeRequestId" />
       </a-form-item>
+
+      <a-form-item label="secretsLocation" :rules="{ required: false }">
+        <a-input v-model:value="selectRequestModalData.secretsLocationName" disabled></a-input>
+      </a-form-item>
+
+      <a-form-item label="secretsURL" :rules="{ required: false }" v-if="selectRequestModalData.secretsURL">
+        <a-input v-model:value="selectRequestModalData.secretsURL" disabled></a-input>
+      </a-form-item>
+
+      <a-space v-for="(secretItem, index) in selectRequestModalData.secrets" :key="secretItem.id"
+        style="display: flex; margin-bottom: 8px" align="baseline" v-if="selectRequestModalData.secretsResult">
+        <a-form-item :name="['secrets', index, 'key']" :label="index === 0 ? 'secrets' : ' '" :rules="{ required: false }"
+          :colon="index === 0 ? true : false">
+          <a-input v-model:value="secretItem.key" disabled />
+        </a-form-item>
+        <a-form-item label="" :name="['secrets', index, 'value']" :rules="{
+          required: false,
+        }">
+          <a-input v-model:value="secretItem.value" disabled />
+        </a-form-item>
+      </a-space>
+
+      <a-space v-for="(argItem, index) in selectRequestModalData.args" :key="argItem.id"
+        style="display: flex; margin-bottom: 8px" align="baseline" v-if="selectRequestModalData.argsResult">
+        <a-form-item :name="['args', index, 'key']" :label="index === 0 ? 'secrets' : ' '" :rules="{ required: false }"
+          :colon="index === 0 ? true : false">
+          <a-input v-model:value="argItem.key" disabled />
+        </a-form-item>
+        <a-form-item label="" :name="['args', index, 'value']" :rules="{
+          required: false,
+        }">
+          <a-input v-model:value="argItem.value" disabled />
+        </a-form-item>
+      </a-space>
+
       <div class="btn-box">
-        <a-button @click="clickSend">Send Request</a-button>
+        <a-button class="confirm-btn" @click="clickSend">Confirm</a-button>
+        <a-button @click="cancelBtn">cancel</a-button>
       </div>
     </a-form>
   </a-modal>
 </template>
 <script lang='ts' setup>
-import { ref, watch } from "vue";
+import { ref, watch, reactive } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useChainlinkDB, useContractApi } from "@/stores/useStore";
 import type { FormInstance } from 'ant-design-vue';
@@ -60,6 +97,8 @@ const requestModal = ref({
   requestId: '',
 });
 
+const selectRequestModalData = reactive({});
+
 const requestList = ref([]);
 const subscriptionsList = ref([]);
 
@@ -75,13 +114,6 @@ const columns = [
     dataIndex: 'address',
     align: "center",
     key: 'address',
-    // customRender: ({ text }) => {
-    //   if (text) {
-    //     return text.substring(0, 5) + "..." + text.substring(text.length - 4)
-    //   } else {
-    //     return '-'
-    //   }
-    // }
   },
   {
     title: 'Created',
@@ -102,7 +134,7 @@ const clickSend = async () => {
   // console.log(subscriptionsList.value, 'requestModal')
   try {
     await formRef.value.validate();
-    const data = requestList.value.find(item => { return item.id == requestModal.value.requestId })
+    const data = requestList.value.find(item => { return item.id == requestModal.value.requestId });
     console.log(data, 'data')
     const source = data.source;
     const secretsLocation = Number(data.requestConfig.secretsLocation);
@@ -158,6 +190,18 @@ const getExecuteList = () => {
   // chainlinkDB.chainLinkDBApi.searchExecuteRequestByConsumerContractId().then(res => { console.og(res) executeList.value = res})
 }
 
+const changeRequestId = (val: any) => {
+  const data = requestList.value.find(item => { return item.id == val });
+  const { requestConfig } = data;
+  const argsResult = requestConfig.args.some(val => { return val.value !== '' });
+  const secretsResult = requestConfig.secrets.some(val => { return val.value !== '' });
+  selectRequestModalData.secretsLocationName = requestConfig.secretsLocation === '1' ? 'Remote' : 'Inline';
+  selectRequestModalData.argsResult = argsResult;
+  selectRequestModalData.secretsResult = secretsResult;
+  Object.assign(selectRequestModalData, requestConfig);
+  // console.log(selectRequestModalData, 'data')
+}
+
 
 const getContractDetail = () => {
   if (contractApi.apiStatus && chainlinkDB.apiStatus) {
@@ -198,6 +242,11 @@ const getRequestList = () => {
 
 const sendRequest = async (val: any) => {
   visible.value = true;
+}
+
+const cancelBtn = () => {
+  visible.value = false;
+  formRef.value.resetFields();
 }
 
 
@@ -269,7 +318,12 @@ watch([() => chainlinkDB.networkId, () => chainlinkDB.apiStatus],
   text-align: center;
 
   .ant-btn {
-    font-size: 700;
+    width: 132px;
+    font-weight: 700;
+    margin: 0 12px;
+  }
+
+  .confirm-btn {
     color: #375bd2;
     border-color: #375bd2;
   }

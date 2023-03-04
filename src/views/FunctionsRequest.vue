@@ -65,7 +65,6 @@ const deleteRequest = (val: any) => {
 
 const getRequestList = () => {
   chainLinkDBApi.getAllRequests().then(res => {
-    // console.log(res, 'getValue')
     requestDataList.value = res
   })
 }
