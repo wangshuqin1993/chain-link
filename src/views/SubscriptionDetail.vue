@@ -105,13 +105,13 @@ const fundsColumns = [
     dataIndex: 'owner',
     align: "center",
     key: 'owner',
-    customRender: ({ text }) => {
-      if (text) {
-        return text.substring(0, 5) + "..." + text.substring(text.length - 4)
-      } else {
-        return '-'
-      }
-    }
+    // customRender: ({ text }) => {
+    //   if (text) {
+    //     return text.substring(0, 5) + "..." + text.substring(text.length - 4)
+    //   } else {
+    //     return '-'
+    //   }
+    // }
   },
   {
     title: 'Created',
@@ -139,13 +139,13 @@ const consumersColumns = [
     dataIndex: 'address',
     align: "center",
     key: 'address',
-    customRender: ({ text }) => {
-      if (text) {
-        return text.substring(0, 5) + "..." + text.substring(text.length - 4)
-      } else {
-        return '-'
-      }
-    }
+    // customRender: ({ text }) => {
+    //   if (text) {
+    //     return text.substring(0, 5) + "..." + text.substring(text.length - 4)
+    //   } else {
+    //     return '-'
+    //   }
+    // }
   },
   {
     title: 'Added',

@@ -43,7 +43,6 @@ export const useChainlinkDB = defineStore("chainlinkDB", () => {
 export const useContractApi = defineStore("contractApi", () => {
   const registryApi: ShallowRef<RegistryApi | undefined> = shallowRef();
   const linkTokenApi: ShallowRef<LinkTokenApi | undefined> = shallowRef();
-  const consumerApi: ShallowRef<ConsumerApi | undefined> = shallowRef();
   const provider = shallowRef();
   const networkId = ref();
   const walletAddress = ref();
@@ -55,14 +54,12 @@ export const useContractApi = defineStore("contractApi", () => {
     walletAddress.value = address.toLowerCase();
     registryApi.value = new RegistryApi(web3Provider, network);
     linkTokenApi.value = new LinkTokenApi(web3Provider, network);
-    consumerApi.value = new ConsumerApi(web3Provider, network);
     apiStatus.value = true;
   };
 
   return {
     registryApi,
     linkTokenApi,
-    consumerApi,
     provider,
     networkId,
     walletAddress,

@@ -43,8 +43,7 @@ interface RequestItem {
   timeout: number,
 }
 
-export interface SceretsItem {
-  secretsname: string,
+export interface RequestConfig {
   secretsLocation: string,
   secretsURL: string,
   secrets: ItemList[],
@@ -58,10 +57,10 @@ export interface ReturnItem {
 
 interface Requset {
   id: number,
+  name: string,
   addTime: string,
   source: string,
-  scerets: SceretsItem,
-  secretsName: string,
+  requestConfig: RequestConfig,
   paramsValue: ParamsItem[],
   requsetValue: RequestItem[],
   calculation: string,
@@ -285,8 +284,8 @@ export class ChainLinkDBApi {
 
   public async searchRequestById(id: number): Promise<Requset | undefined> {
     console.log(id)
-    const value: RequestStoreValue |undefined = await this.db.get('request', id);
-    if(value) {
+    const value: RequestStoreValue | undefined = await this.db.get('request', id);
+    if (value) {
       return value.value;
     } else {
       return undefined;
@@ -294,14 +293,14 @@ export class ChainLinkDBApi {
   }
 
   public async deleteRequestById(id: number): Promise<void> {
-    await this.db.delete('request',id);
+    await this.db.delete('request', id);
     return undefined
   }
 
   public async updateRequest(requset: Requset): Promise<Requset | undefined> {
-    const value: RequestStoreValue | undefined = await this.db.get('request',requset.id);
+    const value: RequestStoreValue | undefined = await this.db.get('request', requset.id);
     if (value) {
-      value.value =  JSON.parse(JSON.stringify(requset));
+      value.value = JSON.parse(JSON.stringify(requset));
       await this.db.put('request', value);
       return value.value;
     }
@@ -337,7 +336,7 @@ export class ChainLinkDBApi {
     }
     return undefined;
   }
-  
+
   //查询合约列表
   public async searchConsumerContractByOwnerAndNetwork(owner: string, network: string): Promise<ConsumerContract[]> {
     const objectStore = this.db.transaction("consumerContract").objectStore("consumerContract");

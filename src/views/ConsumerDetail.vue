@@ -41,8 +41,13 @@ import { ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useChainlinkDB, useContractApi } from "@/stores/useStore";
 import type { FormInstance } from 'ant-design-vue';
+import { ConsumerApi } from "@/api/consumerApi";
+import { networkConfig } from "@/api/contractConfig";
+import { ethers } from "ethers";
+import { encryptWithPublicKey } from "@/utils/encryptSecrets";
 const chainlinkDB = useChainlinkDB();
 const contractApi = useContractApi();
+const consumerApi = ref();
 const router = useRouter();
 const { params } = useRoute();
 const detailList = ref([]);
@@ -70,13 +75,13 @@ const columns = [
     dataIndex: 'address',
     align: "center",
     key: 'address',
-    customRender: ({ text }) => {
-      if (text) {
-        return text.substring(0, 5) + "..." + text.substring(text.length - 4)
-      } else {
-        return '-'
-      }
-    }
+    // customRender: ({ text }) => {
+    //   if (text) {
+    //     return text.substring(0, 5) + "..." + text.substring(text.length - 4)
+    //   } else {
+    //     return '-'
+    //   }
+    // }
   },
   {
     title: 'Created',
@@ -93,26 +98,55 @@ const columns = [
 ]
 
 
-
-
-const clickSend = () => {
+const clickSend = async () => {
   // console.log(subscriptionsList.value, 'requestModal')
-  formRef.value
-    .validate()
-    .then(() => {
-      const data = requestList.value.find(item => { return item.id == requestModal.value.requestId })
-      // console.log(data, 'data')
-      const { secrets } = data;
-      let gasLimit = 0;
-      contractApi.consumerApi.executeRequest(data.source, secrets.secrets, secrets.secretsLocation, secrets.args, requestModal.value.subscriptionId, gasLimit).then(res => {
-        console.log(res, 'res')
-        addEcecute();
-      })
-    })
-    .catch(error => {
-      console.log('error', error);
-    });
+  try {
+    await formRef.value.validate();
+    const data = requestList.value.find(item => { return item.id == requestModal.value.requestId })
+    console.log(data, 'data')
+    const source = data.source;
+    const secretsLocation = Number(data.requestConfig.secretsLocation);
+    const secrets = await buildSecrets(data.requestConfig.secrets, data.requestConfig.secretsURL, secretsLocation);
+    const args = data.paramsValue.filter(t => t.value).map(t => t.value);
+    const subscriptionId = requestModal.value.subscriptionId;
+    const gasLimit = 100000;
+    console.log(source, secretsLocation, gasLimit, secrets, args, subscriptionId)
+    // consumerApi.value.executeRequest(source, secrets, secretsLocation, args, subscriptionId, gasLimit).then(res => {
+    //   console.log(res, 'res')
+    //   addEcecute();
+    // })
+  } catch (error) {
+    console.log('error', error);
+  }
 };
+
+const buildSecrets = async (secrets, secretsURLs, secretsLocation) => {
+  const DONPublicKey = networkConfig[contractApi.networkId].functionsPublicKey;
+  const provider = new ethers.providers.Web3Provider(contractApi.provider)
+  const singer = provider.getSigner();
+  if (secretsLocation === 0) {
+    if (Array.isArray(secrets) && secrets.length > 0) {
+      const obj = secrets.reduce((acc, cur) => {
+        acc[cur.key] = cur.value;
+        return acc;
+      }, {});
+      const message = JSON.stringify(obj);
+      const messageHash = ethers.utils.solidityKeccak256(['string'], [message])
+      const signature = await singer.signMessage(ethers.utils.arrayify(messageHash))
+      const payload = {
+        message,
+        signature,
+      };
+      return "0x" + encryptWithPublicKey(DONPublicKey, JSON.stringify(payload));
+    }
+  }
+  if (secretsLocation === 1) {
+    if (Array.isArray(secretsURLs) && secretsURLs.length > 0) {
+      return "0x" + encryptWithPublicKey(DONPublicKey, secretsURLs.join(" "))
+    }
+  }
+  return "";
+}
 
 
 const addEcecute = () => {
@@ -128,14 +162,17 @@ const getExecuteList = () => {
 const getContractDetail = () => {
   if (contractApi.apiStatus && chainlinkDB.apiStatus) {
     chainlinkDB.chainLinkDBApi.getConsumerContract(Number(params.id)).then(res => {
-      console.log(res, '9090')
+      //console.log(res, '9090')
+      if (res?.address) {
+        consumerApi.value = new ConsumerApi(contractApi.provider, res.address);
+      }
       detailList.value = [res]
     })
   }
 }
 
 const getSubscriptions = () => {
-  chainlinkDB.chainLinkDBApi.getAllSubscriptions(Number(params.id)).then(res => {
+  chainlinkDB.chainLinkDBApi.getAllSubscriptions().then(res => {
     // console.log(res, '9090')
     res.map((item: any) => {
       item.lable = item.id;

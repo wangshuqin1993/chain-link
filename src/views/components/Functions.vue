@@ -1,7 +1,7 @@
 <template>
   <div class="functions">
     <div class="title">Define Calculation Method</div>
-    <a-textarea v-model:value="functionValue" :rows="4" :autosize="true" placeholder="please enter..."
+    <a-textarea v-model:value="functionValue" :auto-size="{ minRows: 4, maxRows: 10 }" placeholder=" please enter"
       @blur="getFunctionData" />
   </div>
 </template>

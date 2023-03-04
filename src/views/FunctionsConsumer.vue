@@ -9,13 +9,15 @@
       </template>
     </a-table>
   </div>
-  <a-modal v-model:visible="visible" title="Create FunctionsConsumer" :footer="null" @ok="handleOk">
+  <a-modal v-model:visible="visible" title="Create FunctionsConsumer" :footer="null">
     <div>
-      <a-form :modal="deployModal">
-        <a-form-item label="id">
-          <a-input v-model:value="deployModal.id" disabled></a-input>
+      <a-form :modal="deployModal" layout="vertical">
+        <a-form-item label="Contract Template">
+          <a-select ref="select" v-model:value="deployModal.id">
+            <a-select-option value="Basic Template">Basic Template</a-select-option>
+          </a-select>
         </a-form-item>
-        <a-form-item label="address">
+        <a-form-item label="Functions Oracle Address">
           <a-input v-model:value="deployModal.address" disabled></a-input>
         </a-form-item>
       </a-form>
@@ -41,13 +43,15 @@ import { ConsumerContract } from "@/db/chainlinkDB";
 import dayjs from "dayjs";
 import router from "@/router";
 const { connectedWallet } = useOnboard();
-const deployModal = reactive({
-  id: '1',
-  address: 'h'
-})
-
 const chainlinkDB = useChainlinkDB()
 const contractApi = useContractApi()
+
+const deployModal = reactive({
+  id: 'Basic Template',
+  address: '0x0'
+})
+
+
 
 
 // const dataSource = ref([{ contractAddress: '1234567dfghu', createdTime: '2023-02-28', id: 2343 }]);
@@ -57,17 +61,23 @@ const loading = ref(false);
 const showWallets = ref();
 const columns = [
   {
+    title: 'ID',
+    dataIndex: 'id',
+    align: "center",
+    key: 'id',
+  },
+  {
     title: 'Contract Address',
     dataIndex: 'address',
     align: "center",
     key: 'address',
-    customRender: ({ text }) => {
-      if (text) {
-        return text.substring(0, 5) + "..." + text.substring(text.length - 4)
-      } else {
-        return '-'
-      }
-    }
+    // customRender: ({ text }) => {
+    //   if (text) {
+    //     return text.substring(0, 5) + "..." + text.substring(text.length - 4)
+    //   } else {
+    //     return '-'
+    //   }
+    // }
   },
   {
     title: 'Created',
@@ -92,7 +102,7 @@ const sendRequest = (val: any) => {
 
 const createConsumer = () => {
   visible.value = true;
-  getAllTemplateList();
+  //getAllTemplateList();
 }
 
 const detailConsumer = (val: any) => {
@@ -102,6 +112,7 @@ const detailConsumer = (val: any) => {
 const deployBtn = async () => {
   console.log("start")
   if (contractApi.apiStatus && chainlinkDB.apiStatus) {
+    loading.value = true;
     let res = await chainlinkDB.chainLinkDBApi.getAllConsumerTemplate();
     console.log(res, "provider", contractApi.provider)
     const rpcProvider = new ethers.providers.Web3Provider(contractApi.provider);
@@ -127,8 +138,9 @@ const deployBtn = async () => {
       }
       await chainlinkDB.chainLinkDBApi.addConsumerContract(consumerContract)
       const list = await chainlinkDB.chainLinkDBApi.searchConsumerContractByOwnerAndNetwork(contractApi.walletAddress, contractApi.networkId);
-      console.log(list);
       consumerList.value = list;
+      loading.value = false;
+      visible.value = false;
     } catch (err: any) {
       console.log("err", err)
       message.error(err)
@@ -162,9 +174,10 @@ watch([() => chainlinkDB.networkId, () => chainlinkDB.apiStatus],
         || newValues[1] != oldValues[1])
     ) {
       getConsumerList()
+      deployModal.address = networkConfig[contractApi.networkId].functionsOracleProxy
     }
   }, {
-  deep: true, // 监视对象内部属性的变化
+  deep: true,
   immediate: true
 });
 
@@ -211,6 +224,6 @@ watch([() => chainlinkDB.networkId, () => chainlinkDB.apiStatus],
 }
 
 :deep(.ant-form-item-label>label) {
-  width: 100px;
+  width: 200px;
 }
 </style>

@@ -30,9 +30,9 @@ const columns = [
   },
   {
     title: 'Name',
-    dataIndex: 'secretsName',
+    dataIndex: 'name',
     align: "center",
-    key: 'secretsName',
+    key: 'name',
   },
   {
     title: 'Created',

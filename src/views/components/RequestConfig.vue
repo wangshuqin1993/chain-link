@@ -1,17 +1,12 @@
 <template>
-  <div class="secrets">
-    <a-form ref="formRef" :model="secretsForm">
-      <a-form-item name="secretsName" label="secretsName" :rules="[{ required: true }]">
-        <a-input v-model:value="secretsForm.secretsName" placeholder="please input secretsName"
-          @blur="submitForm"></a-input>
-      </a-form-item>
-
+  <div class="requestConfig">
+    <a-form ref="formRef" :model="requestConfigForm">
       <a-form-item name="secretsLocation" label="secretsLocation" :rules="[{ required: true }]">
-        <a-select v-model:value="secretsForm.secretsLocation" :options="secretsLocationList" @change="submitForm" />
+        <a-select v-model:value="requestConfigForm.secretsLocation" :options="secretsLocationList" @change="submitForm" />
       </a-form-item>
 
-      <a-space v-for="(secretItem, index) in secretsForm.secrets" :key="secretItem.id"
-        style="display: flex; margin-bottom: 8px" align="baseline" v-if="secretsForm.secretsLocation === 'Inline'">
+      <a-space v-for="(secretItem, index) in requestConfigForm.secrets" :key="secretItem.id"
+        style="display: flex; margin-bottom: 8px" align="baseline" v-if="requestConfigForm.secretsLocation === '0'">
         <a-form-item :name="['secrets', index, 'key']" :label="index === 0 ? 'secrets' : ' '" :rules="{ required: true }"
           :colon="index === 0 ? true : false">
           <a-input v-model:value="secretItem.key" @blur="submitForm" />
@@ -26,15 +21,15 @@
       </a-space>
 
 
-      <a-form-item name="secretsURL" label="secretsURL" v-if="secretsForm.secretsLocation === 'Remote'"
+      <a-form-item name="secretsURL" label="secretsURL" v-if="requestConfigForm.secretsLocation === 'Remote'"
         :rules="{ required: true }">
-        <a-input v-model:value="secretsForm.secretsURL" placeholder="please input secretsURL"
+        <a-input v-model:value="requestConfigForm.secretsURL" placeholder="please input secretsURL"
           @blur="submitForm"></a-input>
       </a-form-item>
 
 
-      <a-space v-for="(argItem, index) in secretsForm.args" :key="argItem.id" style="display: flex; margin-bottom: 8px"
-        align="baseline">
+      <a-space v-for="(argItem, index) in requestConfigForm.args" :key="argItem.id"
+        style="display: flex; margin-bottom: 8px" align="baseline">
         <a-form-item :name="['args', index, 'key']" :label="index === 0 ? 'args' : ' '" :rules="{ required: false }"
           :colon="index === 0 ? true : false">
           <a-input v-model:value="argItem.key" />
@@ -50,24 +45,23 @@ import { ref, reactive, watch } from "vue";
 import type { FormInstance } from 'ant-design-vue';
 import { MinusCircleOutlined, PlusCircleOutlined } from '@ant-design/icons-vue';
 const formRef = ref<FormInstance>();
-const secretsForm = reactive({
-  secretsName: '',
+const requestConfigForm = reactive({
   secretsLocation: '',
   secrets: [{ key: '', value: '', id: Date.now() }],
   args: [{ key: '', value: '', id: Date.now() }],
   secretsURL: '',
 });
-const secretsLocationList = ref([{ label: 'Remote', value: 'Remote' }, { label: 'Inline', value: 'Inline' }]);
+const secretsLocationList = ref([{ label: 'Inline', value: '0' }, { label: 'Remote', value: '1' }]);
 
 const props = defineProps({
-  sceretsData: Object,
+  requestConfigData: Object,
 })
 
-const emit = defineEmits(["submitSecretsForm"]);
+const emit = defineEmits(["submitRequestConfigForm"]);
 
 
 const addSecret = () => {
-  secretsForm.secrets.push({
+  requestConfigForm.secrets.push({
     key: undefined,
     value: undefined,
     id: Date.now()
@@ -75,42 +69,44 @@ const addSecret = () => {
 }
 
 const removeSecret = (item: any) => {
-  let index = secretsForm.secrets.indexOf(item);
+  let index = requestConfigForm.secrets.indexOf(item);
   if (index !== -1) {
-    secretsForm.secrets.splice(index, 1);
+    requestConfigForm.secrets.splice(index, 1);
   }
 }
 
 const addArg = () => {
-  secretsForm.args.push({
+  requestConfigForm.args.push({
     key: undefined,
     id: Date.now()
   });
 }
 
 const removeArg = (item: any) => {
-  let index = secretsForm.args.indexOf(item);
+  let index = requestConfigForm.args.indexOf(item);
   if (index !== -1) {
-    secretsForm.args.splice(index, 1);
+    requestConfigForm.args.splice(index, 1);
   }
 }
 
 const submitForm = () => {
+  console.log("requestConfig", requestConfigForm)
   formRef.value
     .validate()
     .then(() => {
       // console.log(addReturnForm, '99')
-      emit('submitSecretsForm', secretsForm)
+      console.log("requestConfig123", requestConfigForm)
+      emit('submitRequestConfigForm', requestConfigForm)
     })
     .catch(error => {
       console.log('error', error);
     });
 }
 
-watch(() => props.sceretsData,
+watch(() => props.requestConfigData,
   (val) => {
     if (val) {
-      Object.assign(secretsForm, val)
+      Object.assign(requestConfigForm, val)
       // functionValue.value = val;
     }
   }, {
@@ -122,7 +118,7 @@ watch(() => props.sceretsData,
 defineExpose({ submitForm });
 </script>
 <style lang='scss' scoped>
-.secrets-title {
+.requestConfig-title {
   padding-bottom: 8px;
   margin-bottom: 24px;
   font-size: 20px;

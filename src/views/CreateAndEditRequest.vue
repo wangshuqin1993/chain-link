@@ -1,6 +1,24 @@
 <template>
   <div class="create-edit-request">
     <div class="title">{{ title + ' Script' }}</div>
+
+
+    <div class="param-left">
+      <a-form :modal="updateFormData" layout="vertical">
+        <a-form-item label="Request Name" :rules="[{ required: true }]">
+          <a-input v-model:value="updateFormData.name"></a-input>
+        </a-form-item>
+      </a-form>
+    </div>
+
+
+    <div class="content">Script Config</div>
+    <div class="param-left">
+      <RequestConfig @submitRequestConfigForm="submitRequestConfigForm" ref="requestConfigFormRef"
+        :requestConfigData="updateFormData.requestConfig">
+      </RequestConfig>
+    </div>
+
     <div class="content">Script Content</div>
 
     <!-- 定义参数名 -->
@@ -30,13 +48,6 @@
         </div>
       </div>
     </div>
-
-    <div class="content">Script Param</div>
-    <div class="param-left">
-      <Secrets @submitSecretsForm="submitSecretsForm" ref="secretsFormRef" :sceretsData="updateFormData.scerets">
-      </Secrets>
-    </div>
-
     <div class="btn-box">
       <a-button @click="createFunction">{{ buttonInfo }}</a-button>
       <a-button @click="backPage">Back</a-button>
@@ -50,10 +61,11 @@ import ParamsName from './components/ParamsName.vue';
 import Requests from './components/Requests.vue';
 import Functions from "./components/Functions.vue";
 import Returns from "./components/Returns.vue";
-import Secrets from "./components/Secrets.vue";
+import RequestConfig from "./components/RequestConfig.vue";
 import { message } from 'ant-design-vue';
 import dayjs from 'dayjs';
 import { ChainLinkDBApi } from "@/db/chainlinkDB"
+import { element } from "svelte/internal";
 const chainLinkDBApi = new ChainLinkDBApi();
 
 const { params } = useRoute();
@@ -64,11 +76,11 @@ const paramsValue = ref([]);
 const requestValue = ref([]);
 const functionValue = ref('');
 const returnsValue = ref('');
-const secretsValue = reactive({});
+const requestConfigValue = reactive({});
 const returnDBData = reactive({});
 const requestDBdata = ref([]);
 const returnFormRef = ref();
-const secretsFormRef = ref();
+const requestConfigFormRef = ref();
 const updateFormData = reactive({});
 
 const submitParamsForm = (val: any) => {
@@ -91,12 +103,12 @@ const setRequestFunction = (data: any) => {
   Object.assign(requestValue.value, []);
   data.map((item: any) => {
     let str = '';
-    str += `cosnt ${item.formData.requestName} = Functions.makeHttpRequest({
-      url: '${item.formData.URL}',
-      method: '${item.formData.method}',
-    })
-
-    const [${item.formData.responseName}] = await Promise.all([${item.formData.requestName}])
+    str += `
+cosnt ${item.formData.requestName} = Functions.makeHttpRequest({
+  url: '${item.formData.URL}',
+  method: '${item.formData.method}',
+})
+const [${item.formData.responseName}] = await Promise.all([${item.formData.requestName}])
     `
     requestValue.value.push(str);
   })
@@ -112,31 +124,47 @@ const submitReturnForm = (val: any) => {
   returnsValue.value = `return ${val.returnType}(${val.returnParam})`;
 }
 
-const submitSecretsForm = (val: any) => {
-  Object.assign(secretsValue, val)
-  // console.log(secretsValue.secretsURL, 'jjjj')
+const submitRequestConfigForm = (val: any) => {
+  Object.assign(requestConfigValue, val)
+  // console.log(requestConfigValue.secretsURL, 'jjjj')
+}
+
+const generateRequestSource = () => {
+  let source = '';
+  paramsValue.value.forEach(item => {
+    source += item.paramsValue;
+    source += '\n';
+  });
+  requestValue.value.forEach(item => {
+    source += item;
+    source += '\n';
+  });
+  source += functionValue.value;
+  source += '\n';
+  source += returnsValue.value;
+  console.log(source);
+  return source;
 }
 
 const createFunction = async () => {
   returnFormRef.value.submitForm();
-  await secretsFormRef.value.submitForm()
+  await requestConfigFormRef.value.submitForm()
 
   // data1 = JSON.parse(JSON.stringify(paramsValue.value))
-  // console.log(secretsValue,data1, 'ppp')
-
-  let source = returnsValue.value + functionValue.value;
+  // console.log(requestConfigValue,data1, 'ppp')
+  let source = generateRequestSource();
   const data = {
     id: updateFormData.id || Date.now(),
+    name: updateFormData.name,
     addTime: updateFormData.addTime || dayjs().format('YYYY-MM-DD HH:mm:ss'),
-    secretsName: updateFormData.secretsName || JSON.parse(JSON.stringify(secretsValue)).secretsName,
     source: source,
-    scerets: updateFormData.scerets || JSON.parse(JSON.stringify(secretsValue)),
+    requestConfig: updateFormData.requestConfig || JSON.parse(JSON.stringify(requestConfigValue)),
     paramsValue: JSON.parse(JSON.stringify(paramsValue.value)),
     requsetValue: JSON.parse(JSON.stringify(requestDBdata.value)),
     calculation: functionValue.value,
     returnValue: JSON.parse(JSON.stringify(returnDBData)),
   }
-  // console.log(data, secretsValue.secretsURL, 'data')
+
   if (params.type === '1') {
     chainLinkDBApi.addRequest(data).then(res => {
       // console.log(res, '999')
