@@ -7,7 +7,7 @@
           required: false,
         }">
         <a-input v-model:value="paramsName.value" placeholder="please input paramsName" @pressEnter="submitForm"
-          style="width: 94%; margin-right: 8px" @blur="onFieldBlur(index)" />
+          autocomplete="off" style="width: 94%; margin-right: 8px" @blur="onFieldBlur(index)" />
         <MinusCircleOutlined class="dynamic-delete-button" :disabled="dynamicValidateForm.paramsNames.length === 1"
           @click="removeparamsName(paramsName)" />
       </a-form-item>

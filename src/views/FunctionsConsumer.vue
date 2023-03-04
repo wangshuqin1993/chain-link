@@ -52,8 +52,6 @@ const deployModal = reactive({
 })
 
 
-
-
 // const dataSource = ref([{ contractAddress: '1234567dfghu', createdTime: '2023-02-28', id: 2343 }]);
 const consumerList = ref([]);
 const visible = ref(false);
@@ -71,13 +69,6 @@ const columns = [
     dataIndex: 'address',
     align: "center",
     key: 'address',
-    // customRender: ({ text }) => {
-    //   if (text) {
-    //     return text.substring(0, 5) + "..." + text.substring(text.length - 4)
-    //   } else {
-    //     return '-'
-    //   }
-    // }
   },
   {
     title: 'Created',

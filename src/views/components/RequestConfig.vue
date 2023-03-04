@@ -9,12 +9,12 @@
         style="display: flex; margin-bottom: 8px" align="baseline" v-if="requestConfigForm.secretsLocation === '0'">
         <a-form-item :name="['secrets', index, 'key']" :label="index === 0 ? 'secrets' : ' '" :rules="{ required: false }"
           :colon="index === 0 ? true : false">
-          <a-input v-model:value="secretItem.key" @blur="submitForm" />
+          <a-input v-model:value="secretItem.key" @blur="submitForm" autocomplete="off" />
         </a-form-item>
         <a-form-item label="" :name="['secrets', index, 'value']" :rules="{
           required: false,
         }">
-          <a-input v-model:value="secretItem.value" @blur="submitForm" />
+          <a-input v-model:value="secretItem.value" @blur="submitForm" autocomplete="off" />
         </a-form-item>
         <PlusCircleOutlined v-if="index == 0" @click="addSecret" />
         <MinusCircleOutlined v-if="index > 0" @click="removeSecret(secretItem)" />
@@ -23,7 +23,7 @@
 
       <a-form-item name="secretsURL" label="secretsURL" v-if="requestConfigForm.secretsLocation === '1'"
         :rules="{ required: false }">
-        <a-input v-model:value="requestConfigForm.secretsURL" placeholder="please input secretsURL"
+        <a-input v-model:value="requestConfigForm.secretsURL" placeholder="please input secretsURL" autocomplete="off"
           @blur="submitForm"></a-input>
       </a-form-item>
 
@@ -32,7 +32,7 @@
         style="display: flex; margin-bottom: 8px" align="baseline">
         <a-form-item :name="['args', index, 'key']" :label="index === 0 ? 'args' : ' '" :rules="{ required: false }"
           :colon="index === 0 ? true : false">
-          <a-input v-model:value="argItem.key" />
+          <a-input v-model:value="argItem.key" autocomplete="off" />
         </a-form-item>
         <PlusCircleOutlined v-if="index == 0" @click="addArg" />
         <MinusCircleOutlined v-if="index > 0" @click="removeArg(argItem)" />

@@ -79,7 +79,7 @@
   </a-modal>
 </template>
 <script lang='ts' setup>
-import { ref, watch, reactive } from "vue";
+import { ref, watch, reactive, shallowRef } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useChainlinkDB, useContractApi } from "@/stores/useStore";
 import { FormInstance, Modal } from 'ant-design-vue';

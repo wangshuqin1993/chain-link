@@ -5,7 +5,7 @@
     <div class="param-left">
       <a-form :modal="updateFormData" layout="vertical">
         <a-form-item label="Request Name" :rules="[{ required: true }]">
-          <a-input v-model:value="updateFormData.name"></a-input>
+          <a-input v-model:value="updateFormData.name" autocomplete="off"></a-input>
         </a-form-item>
       </a-form>
     </div>

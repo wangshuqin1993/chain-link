@@ -47,7 +47,7 @@
     <div class="add-funds-box">
       <div class="title">Add funds (LINK)</div>
       <div class="add-funds-input">
-        <a-input v-model:value="addFundsAmount"></a-input>
+        <a-input v-model:value="addFundsAmount" autocomplete="off"></a-input>
       </div>
       <div class="desc">Your wallet balance: {{ balanceOfLink }} LINK</div>
       <div class="btn-box">

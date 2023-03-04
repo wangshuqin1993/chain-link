@@ -59,16 +59,18 @@
     @cancel="cancel">
     <a-form ref="formRef" :model="addRequestsForm">
       <a-form-item name="requestName" label="requestName" :rules="[{ required: true, message: 'Missing requestName' }]">
-        <a-input v-model:value="addRequestsForm.requestName" placeholder="please input requestName"></a-input>
+        <a-input v-model:value="addRequestsForm.requestName" placeholder="please input requestName"
+          autocomplete="off"></a-input>
       </a-form-item>
 
       <a-form-item name="responseName" label="responseName"
         :rules="[{ required: true, message: 'Missing responseName' }]">
-        <a-input v-model:value="addRequestsForm.responseName" placeholder="please input responseName"></a-input>
+        <a-input v-model:value="addRequestsForm.responseName" placeholder="please input responseName"
+          autocomplete="off"></a-input>
       </a-form-item>
 
       <a-form-item name="URL" label="URL" :rules="[{ required: true, message: 'Missing URL' }]">
-        <a-input v-model:value="addRequestsForm.URL" placeholder="please input URL"></a-input>
+        <a-input v-model:value="addRequestsForm.URL" placeholder="please input URL" autocomplete="off"></a-input>
       </a-form-item>
 
       <a-form-item name="method" label="Method" :rules="[{ required: false }]">
@@ -79,12 +81,12 @@
         style="display: flex; margin-bottom: 8px" align="baseline">
         <a-form-item :name="['headers', index, 'key']" :label="index === 0 ? 'Headers' : ' '" :rules="{ required: false }"
           :colon="index === 0 ? true : false">
-          <a-input v-model:value="headerItem.key" />
+          <a-input v-model:value="headerItem.key" autocomplete="off" />
         </a-form-item>
         <a-form-item label="" :name="['headers', index, 'value']" :rules="{
           required: false,
         }">
-          <a-input v-model:value="headerItem.value" />
+          <a-input v-model:value="headerItem.value" autocomplete="off" />
         </a-form-item>
         <PlusCircleOutlined v-if="index == 0" @click="addHeader" />
         <MinusCircleOutlined v-if="index > 0" @click="removeHeader(headerItem)" />
@@ -94,12 +96,12 @@
       <a-space v-for="(paramItem, index) in addRequestsForm.params" :key="paramItem.id"
         style="display: flex; margin-bottom: 8px" align="baseline">
         <a-form-item :name="['params', index, 'key']" :label="index === 0 ? 'params' : ' '" :rules="{ required: false }">
-          <a-input v-model:value="paramItem.key" />
+          <a-input v-model:value="paramItem.key" autocomplete="off" />
         </a-form-item>
         <a-form-item label="" :name="['params', index, 'value']" :rules="{
           required: false,
         }">
-          <a-input v-model:value="paramItem.value" />
+          <a-input v-model:value="paramItem.value" autocomplete="off" />
         </a-form-item>
         <PlusCircleOutlined v-if="index == 0" @click="addParams" />
         <MinusCircleOutlined v-if="index > 0" @click="removeParams(paramItem)" />
@@ -108,12 +110,12 @@
       <a-space v-for="(dataItem, index) in addRequestsForm.data" :key="dataItem.id"
         style="display: flex; margin-bottom: 8px" align="baseline">
         <a-form-item :name="['data', index, 'key']" :label="index === 0 ? 'data' : ' '" :rules="{ required: false }">
-          <a-input v-model:value="dataItem.key" />
+          <a-input v-model:value="dataItem.key" autocomplete="off" />
         </a-form-item>
         <a-form-item label="" :name="['data', index, 'value']" :rules="{
           required: false,
         }">
-          <a-input v-model:value="dataItem.value" />
+          <a-input v-model:value="dataItem.value" autocomplete="off" />
         </a-form-item>
         <PlusCircleOutlined v-if="index == 0" @click="addData" />
         <MinusCircleOutlined v-if="index > 0" @click="removeData(dataItem)" />
@@ -122,11 +124,12 @@
 
 
       <a-form-item name="timeout" label="timeout" :rules="[{ required: false }]">
-        <a-input v-model:value="addRequestsForm.timeout" placeholder="please input timeout"></a-input>
+        <a-input v-model:value="addRequestsForm.timeout" placeholder="please input timeout" autocomplete="off"></a-input>
       </a-form-item>
 
       <a-form-item name="responseType" label="responseType" :rules="[{ required: false }]">
-        <a-input v-model:value="addRequestsForm.responseType" placeholder="please input responseType"></a-input>
+        <a-input v-model:value="addRequestsForm.responseType" placeholder="please input responseType"
+          autocomplete="off"></a-input>
       </a-form-item>
 
       <a-form-item class="btn-box">

@@ -7,8 +7,8 @@
           <a-select v-model:value="addReturnForm.returnType" :options="returnTypeList" @change="submitForm" />
         </a-form-item>
         <a-form-item name="returnParam" label="returnParam" :rules="[{ required: true }]">
-          <a-input v-model:value="addReturnForm.returnParam" placeholder="please input returnParam"
-            @blur="submitForm"></a-input>
+          <a-input v-model:value="addReturnForm.returnParam" placeholder="please input returnParam" @blur="submitForm"
+            autocomplete="off"></a-input>
         </a-form-item>
 
         <!-- <a-form-item class="btn-box">
