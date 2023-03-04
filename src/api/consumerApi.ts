@@ -41,4 +41,12 @@ export class ConsumerApi {
   async getDONPublicKey(): Promise<any> {
     return this.contractApi.query('getDONPublicKey');
   }
+  async latestRequestId(): Promise<any> {
+    return this.contractApi.query('latestRequestId');
+  }
+
+  async eventOCRResponse(execId: string) {
+    return this.contractApi.events('OCRResponse', undefined, undefined, execId);
+  }
+
 }

@@ -15,8 +15,13 @@
     </a-table>
 
     <div v-if="executeList.length > 0">
-      <div class="execute-list-title">ExecuteList</div>
-      <a-table :columns="columns" :dataSource="executeList" :pagination="false">
+      <div class="execute-list-title">Execute List</div>
+      <a-table :columns="execColumns" :dataSource="executeList" :pagination="false">
+        <template #bodyCell="{ column, record }">
+          <template v-if="column.key === 'action'">
+            <a @click="getOCRResponse(record)">Get Result</a>
+          </template>
+        </template>
       </a-table>
     </div>
 
@@ -77,18 +82,20 @@
 import { ref, watch, reactive } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useChainlinkDB, useContractApi } from "@/stores/useStore";
-import type { FormInstance } from 'ant-design-vue';
+import { FormInstance, Modal } from 'ant-design-vue';
 import { ConsumerApi } from "@/api/consumerApi";
 import { networkConfig } from "@/api/contractConfig";
 import { ethers } from "ethers";
 import { encryptWithPublicKey } from "@/utils/encryptSecrets";
+import { ExecuteRequest } from "@/db/chainlinkDB";
+import dayjs from "dayjs";
 const chainlinkDB = useChainlinkDB();
 const contractApi = useContractApi();
-const consumerApi = ref();
+const consumerApi = shallowRef();
 const router = useRouter();
 const { params } = useRoute();
 const detailList = ref([]);
-const executeList = ref([]);
+const executeList: Ref<ExecuteRequest[]> = ref([]);
 const visible = ref(false);
 const formRef = ref<FormInstance>();
 
@@ -129,6 +136,38 @@ const columns = [
   }
 ]
 
+const execColumns = [
+  {
+    title: 'RequestId',
+    dataIndex: 'execId',
+    align: "center",
+    key: 'execId',
+  },
+  {
+    title: 'Subscription',
+    dataIndex: 'subscriptionId',
+    align: "center",
+    key: 'subscriptionId',
+  },
+  {
+    title: 'Request Config',
+    dataIndex: 'requestId',
+    align: "center",
+    key: 'requestId',
+  },
+  {
+    title: 'Created',
+    dataIndex: 'createTime',
+    align: "center",
+    key: 'createTime',
+  },
+  {
+    title: 'Action',
+    dataIndex: 'action',
+    align: "center",
+    key: 'action',
+  }
+]
 
 const clickSend = async () => {
   // console.log(subscriptionsList.value, 'requestModal')
@@ -142,11 +181,32 @@ const clickSend = async () => {
     const args = data.paramsValue.filter(t => t.value).map(t => t.value);
     const subscriptionId = requestModal.value.subscriptionId;
     const gasLimit = 100000;
-    console.log(source, secretsLocation, gasLimit, secrets, args, subscriptionId)
-    // consumerApi.value.executeRequest(source, secrets, secretsLocation, args, subscriptionId, gasLimit).then(res => {
-    //   console.log(res, 'res')
-    //   addEcecute();
-    // })
+    console.log(source)
+    console.log("args", args)
+    console.log("secrets", secrets)
+    console.log("secretsLocation", secretsLocation)
+    console.log("subscriptionId", subscriptionId)
+    console.log("address", consumerApi.value.contract.address);
+    consumerApi.value.executeRequest(source, secrets, secretsLocation, args, subscriptionId, gasLimit).then(receipt => {
+      console.log(receipt, 'res')
+      consumerApi.value.latestRequestId().then(execId => {
+        console.log("requestId", execId);
+        const executRequest: ExecuteRequest = {
+          execId: execId,
+          requestId: Number(data.id),
+          consumerContractId: Number(params.id),
+          createTime: dayjs().format('YYYY-MM-DD HH:mm:ss'),
+          owner: contractApi.walletAddress,
+          secrets: secrets,
+          secretsLocation: secretsLocation.toFixed(),
+          args: args,
+          subscriptionId: Number(subscriptionId),
+          gasLimit: gasLimit
+        }
+        addEcecute(executRequest);
+        visible.value = false;
+      })
+    })
   } catch (error) {
     console.log('error', error);
   }
@@ -169,20 +229,20 @@ const buildSecrets = async (secrets, secretsURLs, secretsLocation) => {
         message,
         signature,
       };
-      return "0x" + encryptWithPublicKey(DONPublicKey, JSON.stringify(payload));
+      return "0x" + await encryptWithPublicKey(DONPublicKey, JSON.stringify(payload));
     }
   }
   if (secretsLocation === 1) {
     if (Array.isArray(secretsURLs) && secretsURLs.length > 0) {
-      return "0x" + encryptWithPublicKey(DONPublicKey, secretsURLs.join(" "))
+      return "0x" + await encryptWithPublicKey(DONPublicKey, secretsURLs.join(" "))
     }
   }
   return "";
 }
 
 
-const addEcecute = () => {
-  // chainlinkDB.chainLinkDBApi.addExecuteRequest().then(res => { getExecuteList(); console.og(res) })
+const addEcecute = (executRequest: ExecuteRequest) => {
+  chainlinkDB.chainLinkDBApi.addExecuteRequest(executRequest).then(res => { getExecuteList() })
 }
 
 
@@ -202,6 +262,27 @@ const changeRequestId = (val: any) => {
   // console.log(selectRequestModalData, 'data')
 }
 
+const getOCRResponse = (record) => {
+  consumerApi.value.eventOCRResponse(record.execId).then(res => {
+    let message = "";
+    if (res.length > 0) {
+      if (res[0].args[2] === "0x") {
+        message = `The current result is returned correctly, and the returned data is: ${res[0].args[1]}`
+      } else {
+        message = "Return result error"
+      }
+    } else {
+      message = "Currently no results are returned"
+    }
+    Modal.info({
+      title: 'This is a request result message',
+      content: h('div', {}, [
+        h('p', message),
+      ]),
+    });
+    console.log("OCRResponse", res);
+  })
+}
 
 const getContractDetail = () => {
   if (contractApi.apiStatus && chainlinkDB.apiStatus) {
@@ -231,7 +312,7 @@ const getRequestList = () => {
     // console.log(res, 'getValue')
     res.map((item: any) => {
       item.lable = item.id;
-      item.value = item.id;
+      item.value = item.name;
       requestList.value.push(item)
     })
     console.log(requestList.value, '999')
@@ -263,6 +344,7 @@ watch([() => chainlinkDB.networkId, () => chainlinkDB.apiStatus],
       getContractDetail();
       getSubscriptions();
       getRequestList();
+      getExecuteList();
     }
   }, {
   deep: true,

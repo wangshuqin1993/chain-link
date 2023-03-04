@@ -1,6 +1,8 @@
+import EthCrypto from 'eth-crypto';
 
+export const encryptWithPublicKey = async (publicKey: string, message: string): Promise<string> => {
 
-export const encryptWithPublicKey = (publicKey: string, message: string): string => {
+  const encrypted = await EthCrypto.encryptWithPublicKey(publicKey, message);
 
-  return "";
+  return EthCrypto.cipher.stringify(encrypted);
 };
